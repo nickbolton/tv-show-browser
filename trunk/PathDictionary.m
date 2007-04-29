@@ -9,6 +9,7 @@
 #import "PathDictionary.h"
 #import <Foundation/NSURL.h>
 #import "Episode.h"
+#import "defaults.h"
 
 @implementation PathDictionary
 
@@ -20,7 +21,12 @@ static PathDictionary *sharedPathDictionary = nil;
     {
         pathDictionary = [[NSMutableDictionary alloc] init];
         showEpisodeCache = [[NSMutableDictionary alloc] init];
+        preferences = [Preferences sharedPreferences];
     }
+}
+
+- (void)awakeFromNib {
+    
 }
 
 - (void) dealloc
@@ -85,32 +91,12 @@ static PathDictionary *sharedPathDictionary = nil;
 }
 
 - (NSDictionary*)episodeForFilename:(NSString*)filename {
-    return [episodeNameDictionary objectForKey:filename];
+    return [preferences dictionaryPreference:@"episodeNames" forDictionaryKey:filename];
 }
 
 - (void)setEpisode:(NSDictionary*)episode forFilename:(NSString*)filename {
-    [episodeNameDictionary setObject:episode forKey:filename];
+    [preferences setPreferenceToDictionary:episode forDictionaryKey:filename forKey:@"episodeNames"];
     //NSLog(@"Setting %@ = %@:\n%@", filename, episodeName, episodeNameDictionary);
-}
-
-- (NSMutableDictionary*)episodeNameDictionary {
-    return episodeNameDictionary;
-}
-
-- (void)setEpisodeNameDictionary:(NSMutableDictionary*)newDict {
-    [newDict retain];
-    [episodeNameDictionary autorelease];
-    episodeNameDictionary = newDict;
-}
-
-- (NSMutableDictionary*)lastChoiceDictionary {
-    return lastChoiceDictionary;
-}
-
-- (void)setLastChoiceDictionary:(NSMutableDictionary*)newDict {
-    [newDict retain];
-    [lastChoiceDictionary autorelease];
-    lastChoiceDictionary = newDict;
 }
 
 - (NSString*)fetchShowContents:(NSString*)showName {
@@ -128,11 +114,11 @@ static PathDictionary *sharedPathDictionary = nil;
 }
 
 - (void)initEpisodeNames {
-    NSLog(@"tvShowPath: %@", tvShowPath);
+    NSLog(@"tvShowPath: %@", [self tvShowPath]);
     NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
     
     NSLog(@"Thread, yo!");
-    NSArray* args = [NSArray arrayWithObjects:tvShowPath, @"-name", @"*.avi", @"-o", @"-name", @"*.mpg", @"-o", @"-name", @"*.mpeg", nil];
+    NSArray* args = [NSArray arrayWithObjects:[self tvShowPath], @"-name", @"*.avi", @"-o", @"-name", @"*.mpg", @"-o", @"-name", @"*.mpeg", nil];
     //NSArray* args = [NSArray arrayWithObjects:tvShowPath, @"-type", @"f", @"-mmin", @"+5", @"-mtime", @"-3", nil];
     int size;
     NSMutableString* result = [[NSMutableString alloc] init];
@@ -219,27 +205,17 @@ static PathDictionary *sharedPathDictionary = nil;
     return episodeName;
 }
 
-- (NSString*)lastChoiceForPath:(NSString*)path {
-    return [lastChoiceDictionary objectForKey:path];
-}
-
-- (void)setLastChoice:(NSString*)lastChoice forPath:(NSString*)path {
-    [lastChoiceDictionary setObject:lastChoice forKey:path];
-}
-
 - (BOOL)isTvShowPath:(NSString*)path {
-    int loc = [path rangeOfString:tvShowPath].location;
+    int loc = [path rangeOfString:[self tvShowPath]].location;
     return loc != NSNotFound;
 }
 
 - (NSString*)tvShowPath {
-    return tvShowPath;
+    return [preferences preference:TBS_TvShowDirectory];
 }
 
 - (void)setTvShowPath:(NSString*)newPath {
-    [newPath retain];
-    [tvShowPath autorelease];
-    tvShowPath = newPath;
+    [preferences setPreference:newPath forKey:TBS_TvShowDirectory];
 }
 
 + (NSString*)buildCaseInsensitiveExpression:(NSString*)s {
@@ -264,81 +240,6 @@ static PathDictionary *sharedPathDictionary = nil;
         }
     }
     return exp;
-}
-
-static NSArray* episodeExpressions = nil;
-
-+ (NSArray*)episodeExpressions {
-    
-    if (!episodeExpressions) {
-        episodeExpressions = [NSArray arrayWithObjects:
-            @"[sS]([0-9]+)[eE]([0-9]+)(.*)",
-            @"([0-9]+)[xX]([0-9]+)(.*)",
-            @"([1-9][0-9]?)([0-9][0-9])(.*)", nil];
-        [episodeExpressions retain];
-    }
-    return episodeExpressions;
-}
-
-static NSArray* expressions = nil;
-
-+ (NSArray*)expressions {
-    
-    if (!expressions) {
-        expressions = [NSArray arrayWithObjects:
-        [PathDictionary buildCaseInsensitiveExpression:@"hdtv"],
-        [PathDictionary buildCaseInsensitiveExpression:@"lol"],
-        [PathDictionary buildCaseInsensitiveExpression:@"xvid"],
-        [PathDictionary buildCaseInsensitiveExpression:@"xor"],
-        [PathDictionary buildCaseInsensitiveExpression:@"fov"],
-        [PathDictionary buildCaseInsensitiveExpression:@"\[?vtv\]?"],
-        [PathDictionary buildCaseInsensitiveExpression:@"fqm"],
-        [PathDictionary buildCaseInsensitiveExpression:@"yestv"],
-        [PathDictionary buildCaseInsensitiveExpression:@"eztv"],
-        [PathDictionary buildCaseInsensitiveExpression:@"proper"],
-        [PathDictionary buildCaseInsensitiveExpression:@"repack"],
-        [PathDictionary buildCaseInsensitiveExpression:@"avi"],
-        [PathDictionary buildCaseInsensitiveExpression:@"dvdrip"],
-        [PathDictionary buildCaseInsensitiveExpression:@"720p"],
-        [PathDictionary buildCaseInsensitiveExpression:@"ws"],
-        [PathDictionary buildCaseInsensitiveExpression:@"hr"],
-        [PathDictionary buildCaseInsensitiveExpression:@"webrip"],
-        [PathDictionary buildCaseInsensitiveExpression:@"divx"],
-        [PathDictionary buildCaseInsensitiveExpression:@"pdtv"],
-        [PathDictionary buildCaseInsensitiveExpression:@"dsr"],
-        [PathDictionary buildCaseInsensitiveExpression:@"dvdscr"],
-        [PathDictionary buildCaseInsensitiveExpression:@"mpg"],
-        [PathDictionary buildCaseInsensitiveExpression:@"mpeg"],
-        [PathDictionary buildCaseInsensitiveExpression:@"dimension"],
-        [PathDictionary buildCaseInsensitiveExpression:@"memetic"],
-        [PathDictionary buildCaseInsensitiveExpression:@"ctu"],
-        [PathDictionary buildCaseInsensitiveExpression:@"mkv"],
-        [PathDictionary buildCaseInsensitiveExpression:@"aerial"],
-        [PathDictionary buildCaseInsensitiveExpression:@"notv"],
-        [PathDictionary buildCaseInsensitiveExpression:@"x264"],
-        [PathDictionary buildCaseInsensitiveExpression:@"saints"],
-        [PathDictionary buildCaseInsensitiveExpression:@"hv"],
-        [PathDictionary buildCaseInsensitiveExpression:@"kyr"],
-        [PathDictionary buildCaseInsensitiveExpression:@"2hd"],
-        [PathDictionary buildCaseInsensitiveExpression:@"2sd"],
-        [PathDictionary buildCaseInsensitiveExpression:@"caph"],
-        [PathDictionary buildCaseInsensitiveExpression:@"bluetv"],
-        [PathDictionary buildCaseInsensitiveExpression:@"fpn"],
-        [PathDictionary buildCaseInsensitiveExpression:@"sorny"],
-        [PathDictionary buildCaseInsensitiveExpression:@"preair"],
-        [PathDictionary buildCaseInsensitiveExpression:@"crimson"],
-        [PathDictionary buildCaseInsensitiveExpression:@"orenji"],
-        [PathDictionary buildCaseInsensitiveExpression:@"loki"],
-        [PathDictionary buildCaseInsensitiveExpression:@"ndr"],
-        [PathDictionary buildCaseInsensitiveExpression:@"rmvb"],
-        [PathDictionary buildCaseInsensitiveExpression:@"asd"],
-        [PathDictionary buildCaseInsensitiveExpression:@"vf"],
-        [PathDictionary buildCaseInsensitiveExpression:@"dontask"],
-        [PathDictionary buildCaseInsensitiveExpression:@"bhd"],
-        nil];
-        [expressions retain];
-    }
-    return expressions;
 }
 
 - (NSString*)parseEpisodeName:(NSString*)junk {
@@ -385,7 +286,7 @@ static NSArray* expressions = nil;
     NSMutableString* junk = [[NSMutableString alloc] init];
     [junk setString:filename];
     
-    NSArray* exps = [PathDictionary expressions];
+    NSArray* exps = [self releaseGroupExpressions];
     
     for (i=0; i<[exps count]; i++) {
         //NSLog(@"expression: %@", [expressions objectAtIndex:i]);
@@ -410,6 +311,13 @@ static NSArray* expressions = nil;
     return [junk stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
 }
 
+- (NSArray*)episodeExpressions {
+    return [preferences arrayPreference:TBS_EpisodeExpressions];
+}
+
+- (NSArray*)releaseGroupExpressions {
+    return [preferences arrayPreference:TBS_ReleaseGroupExpressions];
+}
 
 - (Episode*) parseEpisode:(NSString*)path {
     NSString* fileName = [path lastPathComponent];
@@ -430,7 +338,7 @@ static NSArray* expressions = nil;
     
     int seasonNumber = -1;
     NSString* episodeName = nil;
-    NSArray* exps = [PathDictionary episodeExpressions];
+    NSArray* exps = [self episodeExpressions];
     //NSString* fileName = [NSString stringWithString:name];
     
     NSString* trimmedFilename = [self trimFilename:fileName];

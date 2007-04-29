@@ -12,13 +12,12 @@
     NSImage *iconImage;
     NSArray* episodeExpressions;
     NSArray* expressions;
-    NSString* path;
 }
 
 - (void)setAttributedStringValueFromFSNodeInfo:(FSNodeInfo*)node;
 - (void)setIconImage: (NSImage *)image;
 - (NSImage*)iconImage;
-- (NSString*)path;
+- (NSString*)realPath:(NSString*)key;
 
 @end
 

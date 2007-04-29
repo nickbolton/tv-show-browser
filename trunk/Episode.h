@@ -10,4 +10,6 @@
 + (Episode*)initEpisode:(NSDictionary*)properties;
 - (NSDictionary*)properties;
 - (void)setProperties:(NSDictionary*)newProperties;
+- (int)season;
+- (int)episode;
 @end

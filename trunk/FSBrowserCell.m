@@ -47,6 +47,7 @@
 #import "FSBrowserCell.h"
 #import "PathDictionary.h"
 #import "Episode.h"
+#import "Preferences.h"
 
 
 #define ICON_INSET_VERT		2.0	/* The size of empty space between the icon end the top/bottom of the cell */ 
@@ -77,16 +78,6 @@
     [super dealloc];
 }
 
-- (NSString*)path {
-    return path;
-}
-
-- (void)setPath:(NSString*)newPath {
-    [newPath retain];
-    [path autorelease];
-    path = newPath;
-}
-
 - (void)setAttributedStringValueFromFSNodeInfo:(FSNodeInfo*)node {
     // Given a particular FSNodeInfo object set up our display properties.
     NSString *stringValue;
@@ -103,10 +94,10 @@
         
         stringValue = str;
         
-        NSString* absolutePath = [node absolutePath];
-        NSString* key = [[absolutePath stringByDeletingLastPathComponent] stringByAppendingPathComponent:stringValue];
+        NSString* path = [node absolutePath];
+        NSString* key = [[[node absolutePath] stringByDeletingLastPathComponent] stringByAppendingPathComponent:stringValue];
         //NSLog(@"%@ = %@", key, path);
-        [[PathDictionary sharedPathDictionary] setPath:absolutePath forKey:key];
+        [[PathDictionary sharedPathDictionary] setPath:path forKey:key];
     }
     
     // Set the text part.   FSNode will format the string (underline, bold, etc...) based on various properties of the file.
@@ -120,8 +111,6 @@
 
     // Make sure the cell knows if it has children or not.
     [self setLeaf:![node isDirectory]];
-    
-    [self setPath:[node absolutePath]];
 }
 
 - (void)setIconImage: (NSImage *)image {
