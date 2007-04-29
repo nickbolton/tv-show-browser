@@ -23,12 +23,15 @@
 		9223F46C0BE0F22400DAEA77 /* defaults.h in Headers */ = {isa = PBXBuildFile; fileRef = 9223F46B0BE0F22400DAEA77 /* defaults.h */; };
 		929DB9A40BDAE76700D6A80A /* CSRegex.h in Headers */ = {isa = PBXBuildFile; fileRef = 929DB9A20BDAE76700D6A80A /* CSRegex.h */; };
 		929DB9A50BDAE76700D6A80A /* CSRegex.m in Sources */ = {isa = PBXBuildFile; fileRef = 929DB9A30BDAE76700D6A80A /* CSRegex.m */; };
+		92B77F370BE3DCD90026BA37 /* Preferences.nib in Resources */ = {isa = PBXBuildFile; fileRef = 92B77F360BE3DCD90026BA37 /* Preferences.nib */; };
 		92BFF5710BDB029A00B36214 /* PathDictionary.h in Headers */ = {isa = PBXBuildFile; fileRef = 92BFF56F0BDB029A00B36214 /* PathDictionary.h */; };
 		92BFF5720BDB029A00B36214 /* PathDictionary.m in Sources */ = {isa = PBXBuildFile; fileRef = 92BFF5700BDB029A00B36214 /* PathDictionary.m */; };
 		92BFF8680BDFC99F00B36214 /* RecentShowController.h in Headers */ = {isa = PBXBuildFile; fileRef = 92BFF8660BDFC99F00B36214 /* RecentShowController.h */; };
 		92BFF8690BDFC99F00B36214 /* RecentShowController.m in Sources */ = {isa = PBXBuildFile; fileRef = 92BFF8670BDFC99F00B36214 /* RecentShowController.m */; };
 		92BFF86D0BDFD46800B36214 /* Episode.h in Headers */ = {isa = PBXBuildFile; fileRef = 92BFF86B0BDFD46800B36214 /* Episode.h */; };
 		92BFF86E0BDFD46800B36214 /* Episode.m in Sources */ = {isa = PBXBuildFile; fileRef = 92BFF86C0BDFD46800B36214 /* Episode.m */; };
+		92F0D6130BE29D2D0071C3C7 /* Preferences.h in Headers */ = {isa = PBXBuildFile; fileRef = 92F0D6110BE29D2D0071C3C7 /* Preferences.h */; };
+		92F0D6140BE29D2D0071C3C7 /* Preferences.m in Sources */ = {isa = PBXBuildFile; fileRef = 92F0D6120BE29D2D0071C3C7 /* Preferences.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXBuildRule section */
@@ -64,12 +67,15 @@
 		9223F46B0BE0F22400DAEA77 /* defaults.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = defaults.h; sourceTree = "<group>"; };
 		929DB9A20BDAE76700D6A80A /* CSRegex.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CSRegex.h; sourceTree = "<group>"; };
 		929DB9A30BDAE76700D6A80A /* CSRegex.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = CSRegex.m; sourceTree = "<group>"; };
+		92B77F360BE3DCD90026BA37 /* Preferences.nib */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; path = Preferences.nib; sourceTree = "<group>"; };
 		92BFF56F0BDB029A00B36214 /* PathDictionary.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PathDictionary.h; sourceTree = "<group>"; };
 		92BFF5700BDB029A00B36214 /* PathDictionary.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PathDictionary.m; sourceTree = "<group>"; };
 		92BFF8660BDFC99F00B36214 /* RecentShowController.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = RecentShowController.h; sourceTree = "<group>"; };
 		92BFF8670BDFC99F00B36214 /* RecentShowController.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; path = RecentShowController.m; sourceTree = "<group>"; };
 		92BFF86B0BDFD46800B36214 /* Episode.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = Episode.h; sourceTree = "<group>"; };
 		92BFF86C0BDFD46800B36214 /* Episode.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; path = Episode.m; sourceTree = "<group>"; };
+		92F0D6110BE29D2D0071C3C7 /* Preferences.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Preferences.h; sourceTree = "<group>"; };
+		92F0D6120BE29D2D0071C3C7 /* Preferences.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Preferences.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -151,6 +157,7 @@
 				73E7C594049A8AF000C919A3 /* Info-SimpleBrowser.plist */,
 				92BFF56F0BDB029A00B36214 /* PathDictionary.h */,
 				92BFF5700BDB029A00B36214 /* PathDictionary.m */,
+				92B77F360BE3DCD90026BA37 /* Preferences.nib */,
 			);
 			name = BrowserTester;
 			sourceTree = "<group>";
@@ -169,6 +176,8 @@
 				0317AF0D005DBB1811CA0E35 /* Images */,
 				29B97318FDCFA39411CA2CEA /* MainMenu.nib */,
 				089C165CFE840E0CC02AAC07 /* InfoPlist.strings */,
+				92F0D6110BE29D2D0071C3C7 /* Preferences.h */,
+				92F0D6120BE29D2D0071C3C7 /* Preferences.m */,
 			);
 			name = Resources;
 			sourceTree = "<group>";
@@ -198,6 +207,7 @@
 				92BFF8680BDFC99F00B36214 /* RecentShowController.h in Headers */,
 				92BFF86D0BDFD46800B36214 /* Episode.h in Headers */,
 				9223F46C0BE0F22400DAEA77 /* defaults.h in Headers */,
+				92F0D6130BE29D2D0071C3C7 /* Preferences.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -249,6 +259,7 @@
 				73E7C588049A8AF000C919A3 /* InfoPlist.strings in Resources */,
 				73E7C589049A8AF000C919A3 /* FSIconImage-Default.tiff in Resources */,
 				73E7C58A049A8AF000C919A3 /* FSIconImage-LinkArrow.icns in Resources */,
+				92B77F370BE3DCD90026BA37 /* Preferences.nib in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -277,6 +288,7 @@
 				92BFF5720BDB029A00B36214 /* PathDictionary.m in Sources */,
 				92BFF8690BDFC99F00B36214 /* RecentShowController.m in Sources */,
 				92BFF86E0BDFD46800B36214 /* Episode.m in Sources */,
+				92F0D6140BE29D2D0071C3C7 /* Preferences.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -89,14 +89,46 @@
     return subNodes;
 }
 
+int tvShowSorter(id n1, id n2, void *context) {
+    FSNodeInfo* node1 = n1;
+    FSNodeInfo* node2 = n2;
+    PathDictionary* pathDictionary = [PathDictionary sharedPathDictionary];
+    
+    Episode* e1 = [pathDictionary parseEpisode:[n1 absolutePath]];
+    Episode* e2 = [pathDictionary parseEpisode:[n2 absolutePath]];
+    
+    if ([e1 season] < [e2 season]) {
+        return NSOrderedAscending;
+    } else if ([e1 season] > [e2 season]) {
+        return NSOrderedDescending;
+    } else if ([e1 episode] < [e2 episode]) {
+        return NSOrderedAscending;
+    } else if ([e1 episode] > [e2 episode]) {
+        return NSOrderedDescending;
+    } else {
+        return NSOrderedSame;
+    }
+}
+
 - (NSArray *)visibleSubNodes {
     FSNodeInfo     *subNode = nil;
     NSEnumerator   *allSubNodes = [[self subNodes] objectEnumerator];
     NSMutableArray *visibleSubNodes = [NSMutableArray array];
     
+    int fileCount = 0;
     while ((subNode=[allSubNodes nextObject])) {
-        if ([subNode isVisible]) [visibleSubNodes addObject: subNode];
+        if ([subNode isVisible]) {
+            [visibleSubNodes addObject: subNode];
+            if (![subNode isDirectory]) {
+                fileCount++;
+            }
+        }
     }
+    if (((fileCount*100)/[visibleSubNodes count]) > 90 && [[PathDictionary sharedPathDictionary] isTvShowPath:[self absolutePath]]) {
+        NSLog(@"sorting tv shows: %@", [self absolutePath]);
+        return [visibleSubNodes sortedArrayUsingFunction:tvShowSorter context:NULL];
+    }
+    NSLog(@"NOT SORTING: %@", [self absolutePath]);
     return visibleSubNodes;
 }
 

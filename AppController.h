@@ -7,6 +7,7 @@
 #import <Cocoa/Cocoa.h>
 #import "CSRegex.h"
 #import "FSNodeInfo.h"
+#import "Preferences.h"
 
 @interface AppController : NSObject {
 @private
@@ -16,9 +17,11 @@
     IBOutlet NSArrayController* recentShowsArrayController;
     IBOutlet NSTableView* recentShowsTableView;
     NSMutableArray* recentShows;
+    NSMutableDictionary* directoryContentsDictionary;
     
-    NSMutableDictionary* preferences;
+    Preferences* preferences;
     FSNodeInfo* parent;
+    NSTimer* recentShowsTimer;
 }
 
 // Force a reload of column zero and thus, all the data.

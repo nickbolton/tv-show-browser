@@ -23,4 +23,13 @@
     [properties autorelease];
     properties = newProperties;
 }
+
+- (int)season {
+    return [[properties objectForKey:@"season"] intValue];
+}
+
+- (int)episode {
+    return [[properties objectForKey:@"episode"] intValue];
+}
+
 @end
