@@ -44,14 +44,17 @@
 
 #import "FSNodeInfo.h"
 #import "PathDictionary.h"
+#import "ZNLog.h"
 
 @implementation FSNodeInfo 
 
 + (FSNodeInfo*)nodeWithParent:(FSNodeInfo*)parent atRelativePath:(NSString *)path {
+    ZNLogP(TRACE, @"parent=%@ path=%@", parent, path);
     return [[[FSNodeInfo alloc] initWithParent:parent atRelativePath:path] autorelease];
 }
 
-- (id)initWithParent:(FSNodeInfo*)parent atRelativePath:(NSString*)path {    
+- (id)initWithParent:(FSNodeInfo*)parent atRelativePath:(NSString*)path {
+    ZNLogP(TRACE, @"parent=%@ path=%@", parent, path);
     self = [super init];
     if (self==nil) return nil;
     
@@ -70,6 +73,7 @@
 }
 
 - (void)dealloc {
+    ZNLog(TRACE);
     // parentNode is not released since we never retained it.
     [relativePath release];
     relativePath = nil;
@@ -78,6 +82,7 @@
 }
 
 - (NSArray *)subNodes {
+    ZNLog(TRACE);
     NSString       *subNodePath = nil;
     NSEnumerator   *subNodePaths = [[[NSFileManager defaultManager] directoryContentsAtPath: [self absolutePath]] objectEnumerator];
     NSMutableArray *subNodes = [NSMutableArray array];
@@ -90,6 +95,7 @@
 }
 
 int tvShowSorter(id n1, id n2, void *context) {
+    ZNLogP(TRACE, @"n1=%@ n2=%@ context=%@", n1, n2, context);
     FSNodeInfo* node1 = n1;
     FSNodeInfo* node2 = n2;
     PathDictionary* pathDictionary = [PathDictionary sharedPathDictionary];
@@ -111,6 +117,7 @@ int tvShowSorter(id n1, id n2, void *context) {
 }
 
 - (NSArray *)visibleSubNodes {
+    ZNLog(TRACE);
     FSNodeInfo     *subNode = nil;
     NSEnumerator   *allSubNodes = [[self subNodes] objectEnumerator];
     NSMutableArray *visibleSubNodes = [NSMutableArray array];
@@ -125,44 +132,51 @@ int tvShowSorter(id n1, id n2, void *context) {
         }
     }
     if (((fileCount*100)/[visibleSubNodes count]) > 90 && [[PathDictionary sharedPathDictionary] isTvShowPath:[self absolutePath]]) {
-        NSLog(@"sorting tv shows: %@", [self absolutePath]);
+        ZNLogP(DEBUG, @"sorting tv shows: %@", [self absolutePath]);
         return [visibleSubNodes sortedArrayUsingFunction:tvShowSorter context:NULL];
     }
-    NSLog(@"NOT SORTING: %@", [self absolutePath]);
+    ZNLogP(DEBUG, @"NOT SORTING: %@", [self absolutePath]);
     return visibleSubNodes;
 }
 
 - (BOOL)isLink {
+    ZNLog(TRACE);
     NSDictionary *fileAttributes = [[NSFileManager defaultManager] fileAttributesAtPath:[self absolutePath] traverseLink:NO];
     return [[fileAttributes objectForKey:NSFileType] isEqualToString:NSFileTypeSymbolicLink];
 }
 
 - (BOOL)isDirectory {
+    ZNLog(TRACE);
     BOOL isDir = NO;
     BOOL exists = [[NSFileManager defaultManager] fileExistsAtPath:[self absolutePath] isDirectory:&isDir];
     return (exists && isDir);
 }
 
 - (BOOL)isReadable {
+    ZNLog(TRACE);
     return [[NSFileManager defaultManager] isReadableFileAtPath: [self absolutePath]];
 }
 
 - (BOOL)isVisible {
+    ZNLog(TRACE);
     // Make this as sophisticated for example to hide more files you don't think the user should see!
     NSString *lastPathComponent = [self lastPathComponent];
     return ([lastPathComponent length] ? ([lastPathComponent characterAtIndex:0]!='.') : NO);
 }
 
 - (NSString*)fsType {
+    ZNLog(TRACE);
     if ([self isDirectory]) return @"Directory";
     else return @"Non-Directory";
 }
 
 - (NSString*)lastPathComponent {
+    ZNLog(TRACE);
     return [relativePath lastPathComponent];
 }
 
 - (NSString*)absolutePath {
+    ZNLog(TRACE);
     NSString *result = relativePath;
     if(parentNode!=nil) {
         NSString *parentAbsPath = [parentNode absolutePath];
@@ -173,10 +187,12 @@ int tvShowSorter(id n1, id n2, void *context) {
 }
 
 - (NSString*)showName {
+    ZNLog(TRACE);
     return showName;
 }
 
 - (NSImage*)iconImageOfSize:(NSSize)size {
+    ZNLogP(TRACE, @"size.width=%f size.height=%f", size.width, size.height);
     NSString *path = [self absolutePath];
     NSImage *nodeImage = nil;
     

@@ -10,6 +10,7 @@
 #import <Foundation/NSURL.h>
 #import "Episode.h"
 #import "defaults.h"
+#import "ZNLog.h"
 
 @implementation PathDictionary
 
@@ -17,6 +18,7 @@ static PathDictionary *sharedPathDictionary = nil;
 
 - (id) init
 {
+    ZNLog(TRACE);
     if (self = [super init])
     {
         pathDictionary = [[NSMutableDictionary alloc] init];
@@ -26,11 +28,12 @@ static PathDictionary *sharedPathDictionary = nil;
 }
 
 - (void)awakeFromNib {
-    
+    ZNLog(TRACE);
 }
 
 - (void) dealloc
 {   
+    ZNLog(TRACE);
     [pathDictionary release];
     [showEpisodeCache release];
     [super dealloc];
@@ -38,6 +41,7 @@ static PathDictionary *sharedPathDictionary = nil;
 
 + (PathDictionary*)sharedPathDictionary
 {
+    ZNLog(TRACE);
     @synchronized(self) {
         if (sharedPathDictionary == nil) {
             [[self alloc] init]; // assignment not done here
@@ -48,6 +52,7 @@ static PathDictionary *sharedPathDictionary = nil;
 
 + (id)allocWithZone:(NSZone *)zone
 {
+    ZNLogP(TRACE, @"zone=%@", zone);
     @synchronized(self) {
         if (sharedPathDictionary == nil) {
             sharedPathDictionary = [super allocWithZone:zone];
@@ -59,47 +64,57 @@ static PathDictionary *sharedPathDictionary = nil;
 
 - (id)copyWithZone:(NSZone *)zone
 {
+    ZNLogP(TRACE, @"zone=%@", zone);
     return self;
 }
 
 - (id)retain
 {
+    ZNLog(TRACE);
     return self;
 }
 
 - (unsigned)retainCount
 {
+    ZNLog(TRACE);
     return UINT_MAX;  //denotes an object that cannot be released
 }
 
 - (void)release
 {
+    ZNLog(TRACE);
     //do nothing
 }
 
 - (id)autorelease
 {
+    ZNLog(TRACE);
     return self;
 }
 
 - (NSString*)pathForKey:(NSString*)key {
+    ZNLogP(TRACE, @"key=%@", key);
     return [pathDictionary objectForKey:key];
 }
 
 - (void)setPath:(NSString*)path forKey:(NSString*)key {
+    ZNLogP(TRACE, @"path=%@ key=%@", path, key);
     [pathDictionary setObject:path forKey:key];
 }
 
 - (NSDictionary*)episodeForFilename:(NSString*)filename {
+    ZNLogP(TRACE, @"filename=%@", filename);
     return [preferences dictionaryPreference:@"episodeNames" forDictionaryKey:filename];
 }
 
 - (void)setEpisode:(NSDictionary*)episode forFilename:(NSString*)filename {
+    ZNLogP(TRACE, @"episode=%@ filename=%@", episode, filename);
     [preferences setPreferenceToDictionary:episode forDictionaryKey:filename forKey:@"episodeNames"];
     //NSLog(@"Setting %@ = %@:\n%@", filename, episodeName, episodeNameDictionary);
 }
 
 - (NSString*)fetchShowContents:(NSString*)showName {
+    ZNLogP(TRACE, @"showName=%@", showName);
     NSString* contents = [showEpisodeCache objectForKey:showName];
     if (!contents) {
         NSMutableString* showUrl = [[NSMutableString alloc] init];
@@ -114,10 +129,10 @@ static PathDictionary *sharedPathDictionary = nil;
 }
 
 - (void)initEpisodeNames {
-    NSLog(@"tvShowPath: %@", [self tvShowPath]);
+    ZNLog(TRACE);
+    ZNLogP(DEBUG, @"tvShowPath=%@", [self tvShowPath]);
     NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
     
-    NSLog(@"Thread, yo!");
     NSArray* args = [NSArray arrayWithObjects:[self tvShowPath], @"-name", @"*.avi", @"-o", @"-name", @"*.mpg", @"-o", @"-name", @"*.mpeg", nil];
     //NSArray* args = [NSArray arrayWithObjects:tvShowPath, @"-type", @"f", @"-mmin", @"+5", @"-mtime", @"-3", nil];
     int size;
@@ -141,13 +156,13 @@ static PathDictionary *sharedPathDictionary = nil;
         [argsStr appendString:@" "];
     }
     
-    NSLog(@"args: %@", argsStr);
+    ZNLogP(DEBUG, @"args: %@", argsStr);
     
     [task launch];
     
     while ((inData = [readHandle availableData]) && [inData length]) {
         size = [inData length];
-        NSLog(@"data size: %d", size);
+        ZNLogP(DEBUG, @"data size: %d", size);
         char buf[size+1];
         buf[size] = '\0';
         [inData getBytes:buf];
@@ -158,14 +173,15 @@ static PathDictionary *sharedPathDictionary = nil;
     NSArray* paths = [result componentsSeparatedByString:@"\n"];
     
     for (i=0; i<[paths count]; i++) {
-        NSLog(@"path: #%@#", [paths objectAtIndex:i]);
+        ZNLogP(DEBUG, @"path: #%@#", [paths objectAtIndex:i]);
         [self parseEpisode:[paths objectAtIndex:i]];
     }
-    NSLog(@"initEpisodeNames Done.");
+    ZNLogP(DEBUG, @"initEpisodeNames Done.");
     [pool release];
 }
 
 - (NSString*)episodeContents:(NSString*)showContents forEpisode:(NSString*)episode {
+    ZNLogP(TRACE, @"showContents=%@ episode=%@", showContents, episode);
     NSRange startingRange = [showContents rangeOfString:episode];
     if (startingRange.location == NSNotFound) {
         return nil;
@@ -177,6 +193,7 @@ static PathDictionary *sharedPathDictionary = nil;
 }
 
 - (NSString*)fetchEpisodeNameForShow:(NSString*)showName forSeason:(NSString*)season forEpisode:(NSString*)episode {
+    ZNLogP(TRACE, @"showName=%@ season=%@ episode=%@", showName, season, episode);
     NSString* showContents = [self fetchShowContents:showName];
     //NSLog(@"show: %@, showContents: %@", showName, showContents);
     NSMutableString* episodeNamePattern = [[NSMutableString alloc] init];
@@ -189,7 +206,7 @@ static PathDictionary *sharedPathDictionary = nil;
     [episodeNamePattern appendString:episode];
     NSString* episodeContents = [self episodeContents:showContents forEpisode:episodeNamePattern];
     if (!episodeContents) {
-        NSLog(@"Failed to find episode %@ for show %@", episodeNamePattern, showName);
+        ZNLogP(ERROR, @"Failed to find episode %@ for show %@", episodeNamePattern, showName);
         return nil;
     }
     
@@ -206,19 +223,23 @@ static PathDictionary *sharedPathDictionary = nil;
 }
 
 - (BOOL)isTvShowPath:(NSString*)path {
+    ZNLogP(TRACE, @"path=%@", path);
     int loc = [path rangeOfString:[self tvShowPath]].location;
     return loc != NSNotFound;
 }
 
 - (NSString*)tvShowPath {
+    ZNLog(TRACE);
     return [preferences preference:TBS_TvShowDirectory];
 }
 
 - (void)setTvShowPath:(NSString*)newPath {
+    ZNLogP(TRACE, @"newPath=%@", newPath);
     [preferences setPreference:newPath forKey:TBS_TvShowDirectory];
 }
 
 + (NSString*)buildCaseInsensitiveExpression:(NSString*)s {
+    ZNLogP(TRACE, @"s=%@", s);
     NSMutableString* exp = [[NSMutableString alloc] init];
     int i;
     NSString* c;
@@ -243,6 +264,7 @@ static PathDictionary *sharedPathDictionary = nil;
 }
 
 - (NSString*)parseEpisodeName:(NSString*)junk {
+    ZNLogP(TRACE, @"junk=%@", junk);
     int i;
     
     int pos = [junk length];
@@ -281,6 +303,7 @@ static PathDictionary *sharedPathDictionary = nil;
 }
 
 - (NSString*)trimFilename:(NSString*)filename {
+    ZNLogP(TRACE, @"filename=%@", filename);
     int i;
     
     NSMutableString* junk = [[NSMutableString alloc] init];
@@ -312,14 +335,17 @@ static PathDictionary *sharedPathDictionary = nil;
 }
 
 - (NSArray*)episodeExpressions {
+    ZNLog(TRACE);
     return [preferences arrayPreference:TBS_EpisodeExpressions];
 }
 
 - (NSArray*)releaseGroupExpressions {
+    ZNLog(TRACE);
     return [preferences arrayPreference:TBS_ReleaseGroupExpressions];
 }
 
 - (Episode*) parseEpisode:(NSString*)path {
+    ZNLogP(TRACE, @"path=%@", path);
     NSString* fileName = [path lastPathComponent];
     NSDictionary* episode = [self episodeForFilename:fileName];
     if (episode) {

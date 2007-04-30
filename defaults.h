@@ -21,3 +21,4 @@
 #define TBS_RecentShowsModifiedTimeMax  @"recentShowsModifiedTimeMax"
 #define TBS_RecentShowsRefreshInterval  @"recentShowsRefreshInterval"
 #define TBS_AllowablePercentNullForDownload @"allowablePercentNullForDownload"
+#define TBS_LogLevel                        @"logLevel"
