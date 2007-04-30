@@ -1,4 +1,5 @@
 #import "CSRegex.h"
+#import "ZNLog.h"
 
 static NSString *nullstring=nil;
 
@@ -6,6 +7,8 @@ static NSString *nullstring=nil;
 
 -(id)initWithPattern:(NSString *)pattern options:(int)options
 {
+    ZNLogP(TRACE, @"pattern=%@ options=%d", pattern, options);
+
 	if(self=[super init])
 	{
 		int err=regcomp(&preg,[pattern UTF8String],options|REG_EXTENDED);
@@ -22,18 +25,21 @@ static NSString *nullstring=nil;
 
 -(void)dealloc
 {
+    ZNLog(TRACE);
 	regfree(&preg);
 	[super dealloc];
 }
 
 -(BOOL)matchesString:(NSString *)string
 {
+    ZNLogP(TRACE, @"string=%@", string);
 	if(regexec(&preg,[string UTF8String],0,NULL,0)==0) return YES;
 	return NO;
 }
 
 -(NSString *)matchedSubstringOfString:(NSString *)string
 {
+    ZNLogP(TRACE, @"string=%@", string);
 	const char *cstr=[string UTF8String];
 	regmatch_t match;
 	if(regexec(&preg,cstr,1,&match,0)==0)
@@ -47,6 +53,7 @@ static NSString *nullstring=nil;
 
 -(NSArray *)capturedSubstringsOfString:(NSString *)string
 {
+    ZNLogP(TRACE, @"string=%@", string);
 	const char *cstr=[string UTF8String];
 	int num=preg.re_nsub+1;
 	regmatch_t *matches=calloc(sizeof(regmatch_t),num);
@@ -76,15 +83,25 @@ static NSString *nullstring=nil;
 }
 
 +(CSRegex *)regexWithPattern:(NSString *)pattern options:(int)options
-{ return [[[CSRegex alloc] initWithPattern:pattern options:options] autorelease]; }
+{ 
+    ZNLogP(TRACE, @"pattern=%@ options=%d", pattern, options);
+    return [[[CSRegex alloc] initWithPattern:pattern options:options] autorelease];
+}
 
 +(CSRegex *)regexWithPattern:(NSString *)pattern
-{ return [[[CSRegex alloc] initWithPattern:pattern options:0] autorelease]; }
+{
+    ZNLogP(TRACE, @"pattern=%@", pattern);
+    return [[[CSRegex alloc] initWithPattern:pattern options:0] autorelease];
+}
 
-+(NSString *)null { return nullstring; }
++(NSString *)null {
+    ZNLog(TRACE);
+    return nullstring;
+}
 
 +(void)initialize
 {
+    ZNLog(TRACE);
 	if(!nullstring) nullstring=[[NSString alloc] initWithString:@""];
 }
 
@@ -94,33 +111,46 @@ static NSString *nullstring=nil;
 
 -(BOOL)matchedByPattern:(NSString *)pattern options:(int)options
 {
+    ZNLogP(TRACE, @"pattern=%@ options=%d", pattern, options);
 	CSRegex *re=[CSRegex regexWithPattern:pattern options:options|REG_NOSUB];
 	return [re matchesString:self];
 }
 
 -(BOOL)matchedByPattern:(NSString *)pattern
-{ return [self matchedByPattern:pattern options:0]; }
+{ 
+    ZNLogP(TRACE, @"pattern=%@", pattern);
+    return [self matchedByPattern:pattern options:0];
+}
 
 -(NSString *)substringMatchedByPattern:(NSString *)pattern options:(int)options
 {
+    ZNLogP(TRACE, @"pattern=%@ options=%d", pattern, options);
 	CSRegex *re=[CSRegex regexWithPattern:pattern options:options];
 	return [re matchedSubstringOfString:self];
 }
 
 -(NSString *)substringMatchedByPattern:(NSString *)pattern
-{ return [self substringMatchedByPattern:pattern options:0]; }
+{
+    ZNLogP(TRACE, @"pattern=%@", pattern);
+    return [self substringMatchedByPattern:pattern options:0];
+}
 
 -(NSArray *)substringsCapturedByPattern:(NSString *)pattern options:(int)options
 {
+    ZNLogP(TRACE, @"pattern=%@ options=%d", pattern, options);
 	CSRegex *re=[CSRegex regexWithPattern:pattern options:options];
 	return [re capturedSubstringsOfString:self];
 }
 
 -(NSArray *)substringsCapturedByPattern:(NSString *)pattern
-{ return [self substringsCapturedByPattern:pattern options:0]; }
+{ 
+    ZNLogP(TRACE, @"pattern=%@", pattern);
+    return [self substringsCapturedByPattern:pattern options:0];
+}
 
 -(NSString *)escapedPattern
 {
+    ZNLog(TRACE);
 	int len=[self length];
 	NSMutableString *escaped=[NSMutableString stringWithCapacity:len];
     int i;

@@ -48,6 +48,7 @@
 #import "PathDictionary.h"
 #import "Episode.h"
 #import "Preferences.h"
+#import "ZNLog.h"
 
 
 #define ICON_INSET_VERT		2.0	/* The size of empty space between the icon end the top/bottom of the cell */ 
@@ -63,22 +64,26 @@
 @implementation FSBrowserCell
 
 + (NSImage*)branchImage {
+    ZNLog(TRACE);
     // Override the default branch image (we don't want the arrow).
     return nil;
 }
 
 + (NSImage*)highlightedBranchImage {
+    ZNLog(TRACE);
     // Override the default branch image (we don't want the arrow).
     return nil;
 }
 
 - (void)dealloc {
+    ZNLog(TRACE);
     [iconImage release];
     iconImage = nil;
     [super dealloc];
 }
 
 - (void)setAttributedStringValueFromFSNodeInfo:(FSNodeInfo*)node {
+    ZNLogP(TRACE, @"node=%@", node);
     // Given a particular FSNodeInfo object set up our display properties.
     NSString *stringValue;
     NSString* showName = [node showName];
@@ -114,6 +119,7 @@
 }
 
 - (void)setIconImage: (NSImage *)image {
+    ZNLogP(TRACE, @"image=%@", image);
     [iconImage autorelease];
     iconImage = [image copy];
     
@@ -122,10 +128,12 @@
 }
 
 - (NSImage*)iconImage {
+    ZNLog(TRACE);
     return iconImage;
 }
 
 - (NSSize)cellSizeForBounds:(NSRect)aRect {
+    ZNLogP(TRACE, @"aRect.origin.x=%f aRect.origin.y=%f aRect.size.width=%f aRect.size.height=%f", aRect.origin.x, aRect.origin.y, aRect.size.width, aRect.size.height);
     // Make our cells a bit higher than normal to give some additional space for the icon to fit.
     NSSize theSize = [super cellSizeForBounds:aRect];
     theSize.width += [[self iconImage] size].width + ICON_INSET_HORIZ + ICON_INSET_HORIZ;
@@ -134,6 +142,7 @@
 }
 
 - (void)drawInteriorWithFrame:(NSRect)cellFrame inView:(NSView *)controlView {    
+    ZNLogP(TRACE, @"cellFrame.origin.x=%f cellFrame.origin.y=%f cellFrame.size.width=%f cellFrame.size.height=%f controlView=%@", cellFrame.origin.x, cellFrame.origin.y, cellFrame.size.width, cellFrame.size.height, controlView);
     if (iconImage != nil) {
         NSSize	imageSize = [iconImage size];
         NSRect	imageFrame, highlightRect, textFrame;
@@ -178,6 +187,7 @@
 @implementation FSBrowserCell (PrivateUtilities)
 
 + (NSDictionary*)stringAttributesForNode:(FSNodeInfo*)node {
+    ZNLogP(TRACE, @"node=%@", node);
     NSMutableDictionary *attrs = [NSMutableDictionary dictionary];
     
     [attrs setObject: [NSFont systemFontOfSize:[NSFont systemFontSize]] forKey:NSFontAttributeName];
