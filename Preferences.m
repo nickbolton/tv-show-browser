@@ -194,18 +194,12 @@ static Preferences *sharedPreferences = nil;
 - (void)addPreferenceToArray:(NSString*)value forKey:(NSString*)key save:(BOOL)save {
     ZNLogP(TRACE, @"value=%@ key=%@ save=%d", value, key, save);
     NSArray* array = [self arrayPreference:key];
-    if (!array) {
-        array = [[NSMutableArray alloc] init];
-        [prefs setObject:array forKey:key];
+    NSMutableArray* mutableArray = [[NSMutableArray alloc] init];
+    
+    if (array) {
+        [mutableArray addObjectsFromArray:array];
     }
-    NSMutableArray* mutableArray;
-    if (![array isKindOfClass:[NSMutableArray class]]) {
-        mutableArray = [[NSMutableArray alloc] initWithArray:array];
-        [prefs setObject:mutableArray forKey:key];
-        [array autorelease];
-    } else {
-        mutableArray = array;
-    }
+    [prefs setObject:mutableArray forKey:key];
     
     [mutableArray addObject:value];
     if (save) {

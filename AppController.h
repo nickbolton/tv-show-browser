@@ -12,12 +12,16 @@
 @interface AppController : NSObject {
 @private
     IBOutlet NSBrowser    *fsBrowser;
-    IBOutlet NSImageView  *nodeIconWell;  // Image well showing the selected items icon.
-    IBOutlet NSTextField  *nodeInspector; // Text field showing the selected items attributes.
     IBOutlet NSArrayController* recentShowsArrayController;
+    IBOutlet NSArrayController* lastShowArrayController;
+    IBOutlet NSArrayController* nextShowArrayController;
     IBOutlet NSTableView* recentShowsTableView;
+    IBOutlet NSTableView* lastShowTableView;
+    IBOutlet NSTableView* nextShowTableView;
     NSMutableArray* recentShows;
     NSMutableDictionary* directoryContentsDictionary;
+    NSMutableArray* lastShow;
+    NSMutableArray* nextShow;
     
     Preferences* preferences;
     FSNodeInfo* parent;
@@ -35,4 +39,6 @@
 
 - (NSMutableArray*)recentShows;
 - (void)setRecentShows:(NSMutableArray*)newArray;
+- (NSMutableArray*)lastShow;
+- (void)setLastShow:(NSMutableArray*)newArray;
 @end

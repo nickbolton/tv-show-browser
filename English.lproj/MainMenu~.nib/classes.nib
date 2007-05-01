@@ -11,8 +11,10 @@
             LANGUAGE = ObjC; 
             OUTLETS = {
                 fsBrowser = NSBrowser; 
-                nodeIconWell = NSImageView; 
-                nodeInspector = NSTextField; 
+                lastShowArrayController = NSArrayController; 
+                lastShowTableView = NSTableView; 
+                nextShowArrayController = NSArrayController; 
+                nextShowTableView = NSTableView; 
                 recentShowsArrayController = NSArrayController; 
                 recentShowsTableView = NSTableView; 
             }; 

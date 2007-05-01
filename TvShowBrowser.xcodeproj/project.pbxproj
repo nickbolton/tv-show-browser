@@ -23,7 +23,6 @@
 		9223F46C0BE0F22400DAEA77 /* defaults.h in Headers */ = {isa = PBXBuildFile; fileRef = 9223F46B0BE0F22400DAEA77 /* defaults.h */; };
 		929DB9A40BDAE76700D6A80A /* CSRegex.h in Headers */ = {isa = PBXBuildFile; fileRef = 929DB9A20BDAE76700D6A80A /* CSRegex.h */; };
 		929DB9A50BDAE76700D6A80A /* CSRegex.m in Sources */ = {isa = PBXBuildFile; fileRef = 929DB9A30BDAE76700D6A80A /* CSRegex.m */; };
-		92B77F370BE3DCD90026BA37 /* Preferences.nib in Resources */ = {isa = PBXBuildFile; fileRef = 92B77F360BE3DCD90026BA37 /* Preferences.nib */; };
 		92B7800F0BE5511E0026BA37 /* ZNLog.h in Headers */ = {isa = PBXBuildFile; fileRef = 92B7800E0BE5511E0026BA37 /* ZNLog.h */; };
 		92B780130BE553300026BA37 /* ZNLog.m in Sources */ = {isa = PBXBuildFile; fileRef = 92B780120BE553300026BA37 /* ZNLog.m */; };
 		92BFF5710BDB029A00B36214 /* PathDictionary.h in Headers */ = {isa = PBXBuildFile; fileRef = 92BFF56F0BDB029A00B36214 /* PathDictionary.h */; };
@@ -67,7 +66,6 @@
 		9223F46B0BE0F22400DAEA77 /* defaults.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = defaults.h; sourceTree = "<group>"; };
 		929DB9A20BDAE76700D6A80A /* CSRegex.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CSRegex.h; sourceTree = "<group>"; };
 		929DB9A30BDAE76700D6A80A /* CSRegex.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = CSRegex.m; sourceTree = "<group>"; };
-		92B77F360BE3DCD90026BA37 /* Preferences.nib */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; path = Preferences.nib; sourceTree = "<group>"; };
 		92B7800E0BE5511E0026BA37 /* ZNLog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ZNLog.h; sourceTree = "<group>"; };
 		92B780120BE553300026BA37 /* ZNLog.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ZNLog.m; sourceTree = "<group>"; };
 		92BFF56F0BDB029A00B36214 /* PathDictionary.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PathDictionary.h; sourceTree = "<group>"; };
@@ -156,7 +154,6 @@
 				73E7C594049A8AF000C919A3 /* Info-SimpleBrowser.plist */,
 				92BFF56F0BDB029A00B36214 /* PathDictionary.h */,
 				92BFF5700BDB029A00B36214 /* PathDictionary.m */,
-				92B77F360BE3DCD90026BA37 /* Preferences.nib */,
 				92B7800E0BE5511E0026BA37 /* ZNLog.h */,
 			);
 			name = BrowserTester;
@@ -259,7 +256,6 @@
 				73E7C588049A8AF000C919A3 /* InfoPlist.strings in Resources */,
 				73E7C589049A8AF000C919A3 /* FSIconImage-Default.tiff in Resources */,
 				73E7C58A049A8AF000C919A3 /* FSIconImage-LinkArrow.icns in Resources */,
-				92B77F370BE3DCD90026BA37 /* Preferences.nib in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

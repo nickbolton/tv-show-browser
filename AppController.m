@@ -58,9 +58,6 @@
 
 @interface AppController (PrivateUtilities)
 - (NSString*)fsPathToColumn:(int)column;
-- (NSDictionary*)normalFontAttributes;
-- (NSDictionary*)boldFontAttributes;
-- (NSAttributedString*)attributedInspectorStringForFSNode:(FSNodeInfo*)fsnode;
 @end
 
 @implementation AppController
@@ -162,6 +159,81 @@
     [defaults registerDefaults:appDefs];
 } 
 
+- (void)refreshLastAndNextShows:(NSString*)path {
+    ZNLogP(TRACE, @"path=%@", path);
+    if ([lastShow count] > 0) {
+        [lastShowArrayController removeObjects:lastShow];
+    }
+    if ([nextShow count] > 0) {
+        [nextShowArrayController removeObjects:nextShow];
+    }
+    
+    Episode* lastWatchedEpisode = nil;
+    BOOL isDirectory = NO;
+    [[NSFileManager defaultManager] fileExistsAtPath:(NSString *)path isDirectory:&isDirectory];
+    NSString* lastWatchedPath = nil;
+    
+    if (isDirectory) {
+        NSString* lastChoice = [preferences dictionaryPreference:@"lastChoiceDictionary" forDictionaryKey:path];
+        if (lastChoice) {
+            lastWatchedEpisode = [[PathDictionary sharedPathDictionary] parseEpisode:lastChoice];
+            lastWatchedPath = lastChoice;
+        }
+    } else {
+        lastWatchedEpisode = [[PathDictionary sharedPathDictionary] parseEpisode:path];
+        lastWatchedPath = path;
+    }
+    
+    if (lastWatchedEpisode) {
+        [lastShowArrayController addObject:lastWatchedEpisode];
+        
+        NSString* currentBrowserPath = [fsBrowser path];
+        NSString* nodePath = [lastWatchedPath substringFromIndex:[[self mediaDirectory] length]];
+        ZNLogP(DEBUG, @"nodePath=%@", nodePath);
+        [fsBrowser setPath:nodePath];
+        int column = [fsBrowser lastColumn];
+        
+        NSString* nextEpisodeName = [self fetchNextEpisode:lastWatchedEpisode inColumn:column];
+        if (nextEpisodeName) {
+            NSString* nextEpisodeNodePath = [NSString stringWithFormat:@"%@/%@", [lastWatchedPath stringByDeletingLastPathComponent], nextEpisodeName];
+            NSString *nextEpisodeRealPath = [[PathDictionary sharedPathDictionary] pathForKey:nextEpisodeNodePath];
+            if (nextEpisodeRealPath) {
+                Episode* nextEpisode = [[PathDictionary sharedPathDictionary] parseEpisode:nextEpisodeRealPath];
+                if (nextEpisode) {
+                    [nextShowArrayController addObject:nextEpisode];
+                }
+            }
+        }
+        [fsBrowser setPath:currentBrowserPath];
+    }
+}
+
+- (NSString*)fetchNextEpisode:(Episode*)lastEpisode inColumn:(int)column {
+    
+    NSString* nextEpisode = nil;
+    
+    NSString* attributedLastShowName = [NSString stringWithFormat:@"%dx%d %@", [lastEpisode season], [lastEpisode episode], [lastEpisode episodeName]];
+    
+    NSMatrix* matrix = [fsBrowser matrixInColumn:column];
+    if (matrix) {
+        NSArray* cells = [matrix cells];
+        if (cells) {
+            int i;
+            BOOL seenLastEpisode = NO;
+            for (i=0; !nextEpisode && i<[cells count]; i++) {
+                ZNLogP(DEBUG, @"lastShowName=%@", attributedLastShowName);
+                ZNLogP(DEBUG, @"   cell name=%@", [[cells objectAtIndex:i] stringValue]);
+                NSString* cellName = [[cells objectAtIndex:i] stringValue];
+                if (seenLastEpisode && [@"" compare:cellName] != NSOrderedSame && [attributedLastShowName compare:cellName] != NSOrderedSame) {
+                    nextEpisode = [[cells objectAtIndex:i] stringValue];
+                } else if ([attributedLastShowName compare:[[cells objectAtIndex:i] stringValue]] == NSOrderedSame) {
+                    seenLastEpisode = YES;
+                }
+            }
+        }
+    }
+    return nextEpisode;
+}
 
 - (void)awakeFromNib {
     ZNLog(TRACE);
@@ -169,6 +241,8 @@
         
     recentShows = [[NSMutableArray alloc] init];
     directoryContentsDictionary = [[NSMutableDictionary alloc] init];
+    lastShow = [[NSMutableArray alloc] init];
+    nextShow = [[NSMutableArray alloc] init];
     
     //NSLog(@"Initial Preferences:\n%@", preferences);
     
@@ -196,6 +270,16 @@
     recentShowsTimer = [NSTimer scheduledTimerWithTimeInterval:d target:self selector:@selector(updateRecentShows:) userInfo:nil repeats:YES];
     [recentShowsTimer fire];
 
+    [lastShowTableView setDoubleAction:@selector(lastShowAction:)];
+    [nextShowTableView setDoubleAction:@selector(nextShowAction:)];
+    
+    NSString* lastWatchedPath = [preferences dictionaryPreference:@"lastChoiceDictionary" forDictionaryKey:[self tvShowDirectory]];
+    if (lastWatchedPath) {
+        NSString* nodePath = [[self tvShowDirectory] substringFromIndex:[[self mediaDirectory] length]];
+        
+        [fsBrowser setPath:nodePath];
+        [self refreshLastAndNextShows:lastWatchedPath];
+    }
 }
 
 - (BOOL)isEpisodeIgnored:(NSString*)path {
@@ -214,6 +298,11 @@
 - (NSString*)mediaDirectory {
     ZNLog(TRACE);
     return [preferences preference:TBS_MediaDirectory];
+}
+
+- (NSString*)tvShowDirectory {
+    ZNLog(TRACE);
+    return [preferences preference:TBS_TvShowDirectory];
 }
 
 - (NSArray*)mediaExtensions {
@@ -286,37 +375,23 @@
 
 - (IBAction)browserSingleClick:(id)sender {
     ZNLogP(TRACE, @"sender=%@", sender);
-    // Determine the selection and display it's icon and inspector information on the right side of the UI.
-    NSImage            *inspectorImage = nil;
-    NSAttributedString *attributedString = nil;
-    
+
     if ([[fsBrowser selectedCells] count]==1) {
         NSString *nodePath = [fsBrowser path];
-        FSNodeInfo *fsNode = [FSNodeInfo nodeWithParent:nil atRelativePath: [self absolutePath:nodePath]];
-        if ([fsNode isDirectory]) {
-            NSString* lastChoice = [preferences dictionaryPreference:@"lastChoiceDictionary" forDictionaryKey:nodePath];
-            if (lastChoice) {
-                [fsBrowser setAction: nil];
-                [fsBrowser setDoubleAction: nil];
-                
-                [fsBrowser browser:fsBrowser selectCellWithString:lastChoice inColumn:([fsBrowser selectedColumn]+1)];
-                [fsBrowser setAction: @selector(browserSingleClick:)];
-                [fsBrowser setDoubleAction: @selector(browserDoubleClick:)];
-            }
-        }
+        NSString *realPath = [[self mediaDirectory] stringByAppendingPathComponent:nodePath];
+        ZNLogP(DEBUG, @"nodePath=%@ realPath=%@", nodePath, realPath);
         
-        attributedString = [self attributedInspectorStringForFSNode: fsNode];
-        inspectorImage = [fsNode iconImageOfSize: NSMakeSize(128,128)];
+        BOOL isDirectory = NO;
+        [[NSFileManager defaultManager] fileExistsAtPath:(NSString *)realPath isDirectory:&isDirectory];
+        
+        if (isDirectory) {
+            [self refreshLastAndNextShows:realPath];
+        }
     }
     else if ([[fsBrowser selectedCells] count]>1) {
-        attributedString = [[NSAttributedString alloc] initWithString: @"Multiple Selection"];
     }
     else {
-	attributedString = [[NSAttributedString alloc] initWithString: @"No Selection"];
     }
-    
-    [nodeInspector setAttributedStringValue: attributedString];
-    [nodeIconWell setImage: inspectorImage];
 }
 
 - (IBAction)delete:(id)sender {
@@ -363,15 +438,11 @@
     [self setEpisodeIgnored:realPath];
     
     if ([nodePath compare:realPath]) {
-        NSString *parent = [realPath stringByDeletingLastPathComponent];
-        NSString* lastChoice = [nodePath lastPathComponent];
-        
-        while ( [parent compare:[self mediaDirectory]] ) {
-            [preferences setPreferenceToDictionary:lastChoice forDictionaryKey:parent forKey:@"lastChoiceDictionary" save:NO];
-            parent = [parent stringByDeletingLastPathComponent];
-        }
-        [preferences save];
+        [self updateLastChoice:realPath];
+        [self refreshLastAndNextShows:realPath];
     }
+    
+    
 }
 
 @end
@@ -385,30 +456,6 @@
     //if(column==0) path = [NSString stringWithFormat:@"/Users"];
     else path = [fsBrowser pathToColumn: column];
     return path;
-}
-
-- (NSDictionary*)normalFontAttributes {
-    ZNLog(TRACE);
-    return [NSDictionary dictionaryWithObject: [NSFont systemFontOfSize:[NSFont systemFontSize]] forKey:NSFontAttributeName];
-}
-
-- (NSDictionary*)boldFontAttributes {
-    ZNLog(TRACE);
-    return [NSDictionary dictionaryWithObject: [NSFont boldSystemFontOfSize:[NSFont systemFontSize]] forKey:NSFontAttributeName];
-}
-
-- (NSAttributedString*)attributedInspectorStringForFSNode:(FSNodeInfo*)fsnode {
-    ZNLogP(TRACE, @"fsnode=%@", fsnode);
-    NSMutableAttributedString *attrString = [[[NSMutableAttributedString alloc] initWithString:@"Name: " attributes:[self boldFontAttributes]] autorelease];
-    [attrString appendAttributedString: [[[NSAttributedString alloc] initWithString:[NSString stringWithFormat: @"%@\n", [fsnode lastPathComponent]] attributes:[self normalFontAttributes]] autorelease]];
-    [attrString appendAttributedString: [[[NSAttributedString alloc] initWithString:@"Type: " attributes:[self boldFontAttributes]] autorelease]];
-    [attrString appendAttributedString: [[[NSAttributedString alloc] initWithString:[NSString stringWithFormat: @"%@\n", [fsnode fsType]] attributes:[self normalFontAttributes]] autorelease]];
-    
-    if ([fsnode isDirectory] && [[PathDictionary sharedPathDictionary] isTvShowPath:[fsnode absolutePath]]) {
-        [attrString appendAttributedString: [[[NSAttributedString alloc] initWithString:@"Last Watched: " attributes:[self boldFontAttributes]] autorelease]];
-        [attrString appendAttributedString: [[[NSAttributedString alloc] initWithString:[NSString stringWithFormat: @"%@\n", [preferences dictionaryPreference:@"lastChoiceDictionary" forDictionaryKey:[fsnode absolutePath]]] attributes:[self normalFontAttributes]] autorelease]];
-    }
-    return attrString;
 }
 
 -(BOOL) applicationShouldTerminateAfterLastWindowClosed:(NSApplication *)theApplication
@@ -436,6 +483,40 @@
     recentShows = newArray;
 }
 
+- (NSMutableArray*)lastShow {
+    ZNLog(TRACE);
+    return lastShow;
+}
+
+- (void)setLastShow:(NSMutableArray*)newArray {
+    ZNLogP(TRACE, @"newArray=%@", newArray);
+    [newArray retain];
+    [lastShow autorelease];
+    lastShow = newArray;    
+}
+
+- (NSMutableArray*)nextShow {
+    ZNLog(TRACE);
+    return nextShow;
+}
+
+- (void)setNextShow:(NSMutableArray*)newArray {
+    ZNLogP(TRACE, @"newArray=%@", newArray);
+    [newArray retain];
+    [nextShow autorelease];
+    nextShow = newArray;    
+}
+
+- (void)updateLastChoice:(NSString*)path {
+    NSString *parent = [path stringByDeletingLastPathComponent];
+    
+    while ( [parent compare:[self mediaDirectory]] ) {
+        [preferences setPreferenceToDictionary:path forDictionaryKey:parent forKey:@"lastChoiceDictionary" save:NO];
+        parent = [parent stringByDeletingLastPathComponent];
+    }
+    [preferences save];
+}
+
 - (IBAction)recentShowAction:(id)tableView {
     ZNLogP(TRACE, @"tableView=%@", tableView);
     int episodeRow = [tableView clickedRow];
@@ -447,6 +528,38 @@
         [[NSWorkspace sharedWorkspace] openFile:filePath ];
         [recentShowsArrayController removeObject:episode];
         [self setEpisodeIgnored:filePath];
+        
+        [self updateLastChoice:filePath];
+        [self refreshLastAndNextShows:filePath];
+    }
+}
+
+- (IBAction)nextShowAction:(id)tableView {
+    ZNLogP(TRACE, @"tableView=%@", tableView);
+    int episodeRow = [tableView clickedRow];
+    if (episodeRow >= 0) {
+        NSArray* array = [nextShowArrayController arrangedObjects];
+        Episode* episode = [array objectAtIndex:episodeRow];
+        NSString* filePath = [[episode properties] objectForKey:@"filePath"];
+        //NSLog(@"episode: %@ watched: %d", [episode filePath], [self isShowWatched:filePath]);
+        [[NSWorkspace sharedWorkspace] openFile:filePath ];
+        [recentShowsArrayController removeObject:episode];
+        [self setEpisodeIgnored:filePath];
+        
+        [self updateLastChoice:filePath];
+        [self refreshLastAndNextShows:filePath];
+    }
+}
+
+- (IBAction)lastShowAction:(id)tableView {
+    ZNLogP(TRACE, @"tableView=%@", tableView);
+    int episodeRow = [tableView clickedRow];
+    if (episodeRow >= 0) {
+        NSArray* array = [lastShowArrayController arrangedObjects];
+        Episode* episode = [array objectAtIndex:episodeRow];
+        NSString* filePath = [[episode properties] objectForKey:@"filePath"];
+        //NSLog(@"episode: %@ watched: %d", [episode filePath], [self isShowWatched:filePath]);
+        [[NSWorkspace sharedWorkspace] openFile:filePath ];
     }
 }
 
@@ -517,7 +630,7 @@
         [argsStr appendString:@" "];
     }
     
-    //NSLog(@"args: %@", argsStr);
+    ZNLogP(DEBUG, @"args: %@", argsStr);
     [task launch];
     
     while ((inData = [readHandle availableData]) && [inData length]) {
@@ -528,7 +641,7 @@
         [inData getBytes:buf];
         [result appendFormat:@"%s", buf];
     }
-    //NSLog(@"%@", result);
+    ZNLogP(DEBUG, @"%@", result);
     
     if ([recentShows count] > 0) {
         [recentShowsArrayController removeObjects:recentShows];
@@ -540,7 +653,9 @@
     for (i=0; i<[paths count]; i++) {
         NSString* path = [paths objectAtIndex:i];
         //NSLog(@"path: #%@#", path);
-        if (path && [path compare:@""] && ![self isEpisodeIgnored:path] && [self isDownloadComplete:path] ) {
+        BOOL isIgnored = [self isEpisodeIgnored:path];
+        BOOL isComplete = [self isDownloadComplete:path];
+        if (path && [path compare:@""] && !isIgnored && isComplete) {
             Episode* episode = [[PathDictionary sharedPathDictionary] parseEpisode:path];
             if (episode) {
             //NSLog(@"episode:\n%@", [episode properties]);
