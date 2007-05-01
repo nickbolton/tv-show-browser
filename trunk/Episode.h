@@ -12,4 +12,6 @@
 - (void)setProperties:(NSDictionary*)newProperties;
 - (int)season;
 - (int)episode;
+- (NSString*)episodeName;
+- (NSString*)showName;
 @end

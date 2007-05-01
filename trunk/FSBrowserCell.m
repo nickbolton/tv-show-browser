@@ -92,10 +92,10 @@
         stringValue = [node lastPathComponent];
     } else {
         Episode* episode = [[PathDictionary sharedPathDictionary] parseEpisode:[node absolutePath]];
-        NSDictionary* properties = [episode properties];
+        //NSDictionary* properties = [episode properties];
         NSMutableString* str = [[NSMutableString alloc] init];
         [str setString:@""];
-        [str appendFormat:@"%@x%@ %@", [properties objectForKey:@"season"], [properties objectForKey:@"episode"], [properties objectForKey:@"episodeName"]];
+        [str appendFormat:@"%dx%d %@", [episode season], [episode episode], [episode episodeName]];
         
         stringValue = str;
         

@@ -39,4 +39,12 @@
     return [[properties objectForKey:@"episode"] intValue];
 }
 
+- (NSString*)episodeName {
+    return [properties objectForKey:@"episodeName"];
+}
+
+- (NSString*)showName {
+    return [properties objectForKey:@"showName"];
+}
+
 @end
