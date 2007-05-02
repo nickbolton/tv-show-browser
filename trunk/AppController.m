@@ -50,9 +50,10 @@
 #import "CSRegex.h"
 #import "PathDictionary.h"
 #import "Episode.h"
-#import "defaults.h"
 #import "Preferences.h"
 #import "ZNLog.h"
+#import "RecentShows.h"
+#import "Prefs.h"
 
 #define MAX_VISIBLE_COLUMNS 4
 
@@ -61,103 +62,6 @@
 @end
 
 @implementation AppController
-
-- (double)recentShowsRefreshInterval {
-    ZNLog(TRACE);
-    return [preferences preferenceAsDouble:TBS_RecentShowsRefreshInterval];
-}
-
-+(void)initialize 
-{ 
-    ZNLog(TRACE);
-    NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults]; 
-    NSMutableDictionary *appDefs = [NSMutableDictionary dictionary]; 
-    [appDefs setObject:[NSMutableArray arrayWithObjects:@"avi", @"mpg", @"mpeg", nil] 
-                forKey:TSB_MediaExtensions]; 
-    [appDefs setObject:[@"~/Movies/TvShows" stringByExpandingTildeInPath] 
-                forKey:TBS_TvShowDirectory]; 
-    [appDefs setObject:[@"~/Movies" stringByExpandingTildeInPath]
-                forKey:TBS_MediaDirectory];
-    [appDefs setObject:[NSMutableArray arrayWithObjects:@"hdtv",
-        @"lol",
-        @"xvid",
-        @"xor",
-        @"fov",
-        @"\[?vtv\]?",
-        @"fqm",
-        @"yestv",
-        @"eztv",
-        @"proper",
-        @"repack",
-        @"avi",
-        @"dvdrip",
-        @"720p",
-        @"ws",
-        @"hr",
-        @"webrip",
-        @"divx",
-        @"pdtv",
-        @"dsr",
-        @"dvdscr",
-        @"mpg",
-        @"mpeg",
-        @"dimension",
-        @"memetic",
-        @"ctu",
-        @"mkv",
-        @"aerial",
-        @"notv",
-        @"x264",
-        @"saints",
-        @"hv",
-        @"kyr",
-        @"2hd",
-        @"2sd",
-        @"caph",
-        @"bluetv",
-        @"fpn",
-        @"sorny",
-        @"preair",
-        @"crimson",
-        @"orenji",
-        @"loki",
-        @"ndr",
-        @"rmvb",
-        @"asd",
-        @"vf",
-        @"dontask",
-        @"bhd",
-        nil]
-                forKey:TBS_ReleaseGroupExpressions];
-    [appDefs setObject:[NSMutableArray arrayWithObjects:
-        @"[sS]([0-9]+)[eE]([0-9]+)(.*)",
-        @"([0-9]+)[xX]([0-9]+)(.*)",
-        @"([1-9][0-9]?)([0-9][0-9])(.*)",
-        nil]
-                forKey:TBS_EpisodeExpressions];
-    [appDefs setObject:@"http://epguides.com/" 
-                forKey:TBS_EpisodeSite];
-    [appDefs setObject:[NSMutableArray arrayWithObjects:@"[", @"]", @"(", @")", nil] 
-                forKey:TBS_EpisodeFilenameTrimStrings];
-    [appDefs setObject:[NSMutableArray arrayWithObjects:@"_", @"-", @".", nil] 
-                forKey:TBS_EpisodeFilenameWSStrings];
-    [appDefs setObject:[NSMutableArray arrayWithObjects:@"  ", nil] 
-                forKey:TBS_EpisodeFilenameWSAll];
-    [appDefs setObject:@"5" 
-                forKey:TBS_RecentShowsModifiedTimeMin];
-    [appDefs setObject:@"4320" 
-                forKey:TBS_RecentShowsModifiedTimeMax];
-    [appDefs setObject:@"300.0" 
-                forKey:TBS_RecentShowsRefreshInterval];
-    
-    [appDefs setObject:@"0.02"
-                forKey:TBS_AllowablePercentNullForDownload];
-    
-    [appDefs setObject:[NSString stringWithFormat:@"%d", ERROR]
-                forKey:TBS_LogLevel];
-    
-    [defaults registerDefaults:appDefs];
-} 
 
 - (void)refreshLastAndNextShows:(NSString*)path {
     ZNLogP(TRACE, @"path=%@", path);
@@ -174,7 +78,7 @@
     NSString* lastWatchedPath = nil;
     
     if (isDirectory) {
-        NSString* lastChoice = [preferences dictionaryPreference:@"lastChoiceDictionary" forDictionaryKey:path];
+        NSString* lastChoice = [Preferences dictionaryPreference:@"lastChoiceDictionary" forDictionaryKey:path];
         if (lastChoice) {
             lastWatchedEpisode = [[PathDictionary sharedPathDictionary] parseEpisode:lastChoice];
             lastWatchedPath = lastChoice;
@@ -188,7 +92,7 @@
         [lastShowArrayController addObject:lastWatchedEpisode];
         
         NSString* currentBrowserPath = [fsBrowser path];
-        NSString* nodePath = [lastWatchedPath substringFromIndex:[[self mediaDirectory] length]];
+        NSString* nodePath = [lastWatchedPath substringFromIndex:[[Preferences mediaDirectory] length]];
         ZNLogP(DEBUG, @"nodePath=%@", nodePath);
         [fsBrowser setPath:nodePath];
         int column = [fsBrowser lastColumn];
@@ -237,15 +141,10 @@
 
 - (void)awakeFromNib {
     ZNLog(TRACE);
-    preferences = [Preferences sharedPreferences];
         
-    recentShows = [[NSMutableArray alloc] init];
     directoryContentsDictionary = [[NSMutableDictionary alloc] init];
     lastShow = [[NSMutableArray alloc] init];
     nextShow = [[NSMutableArray alloc] init];
-    
-    //NSLog(@"Initial Preferences:\n%@", preferences);
-    
     
     // Make the browser user our custom browser cell.
     [fsBrowser setCellClass: [FSBrowserCell class]];
@@ -255,6 +154,8 @@
     [fsBrowser setAction: @selector(browserSingleClick:)];
     [fsBrowser setDoubleAction: @selector(browserDoubleClick:)];
     
+    [recentShowsTableView setDoubleAction:@selector(recentShowAction:)];
+    
     // Configure the number of visible columns (default max visible columns is 1).
     [fsBrowser setMaxVisibleColumns: MAX_VISIBLE_COLUMNS];
     [fsBrowser setMinColumnWidth: NSWidth([fsBrowser bounds])/(float)MAX_VISIBLE_COLUMNS];
@@ -262,61 +163,149 @@
     // Prime the browser with an initial load of data.
     [self reloadData: nil];
     
-    [recentShowsTableView setDoubleAction:@selector(recentShowAction:)];
+    //[recentShowsTableView setDoubleAction:@selector(recentShowAction:)];
     
     //[[PathDictionary sharedPathDictionary] initEpisodeNames];
     
+    [self cleanupPathDb];
+    
+    /*
     double d = [self recentShowsRefreshInterval];
     recentShowsTimer = [NSTimer scheduledTimerWithTimeInterval:d target:self selector:@selector(updateRecentShows:) userInfo:nil repeats:YES];
     [recentShowsTimer fire];
+     */
 
     [lastShowTableView setDoubleAction:@selector(lastShowAction:)];
     [nextShowTableView setDoubleAction:@selector(nextShowAction:)];
     
-    NSString* lastWatchedPath = [preferences dictionaryPreference:@"lastChoiceDictionary" forDictionaryKey:[self tvShowDirectory]];
+    NSString* lastWatchedPath = [Preferences dictionaryPreference:@"lastChoiceDictionary" forDictionaryKey:[Preferences tvShowDirectory]];
     if (lastWatchedPath) {
-        NSString* nodePath = [[self tvShowDirectory] substringFromIndex:[[self mediaDirectory] length]];
+        NSString* nodePath = [[Preferences tvShowDirectory] substringFromIndex:[[Preferences mediaDirectory] length]];
         
         [fsBrowser setPath:nodePath];
         [self refreshLastAndNextShows:lastWatchedPath];
     }
 }
 
+- (void)cleanupPathDb {
+    ZNLog(TRACE);
+    
+    NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+    
+    BOOL needToSave = NO;
+    NSFileManager* fileManager = [NSFileManager defaultManager];
+    
+    NSDictionary* dict = [Preferences dictionaryPreferences:@"episodeNames"];
+    if (dict) {
+        NSArray* keys = [NSArray arrayWithArray:[dict allKeys]];
+        if (keys) {
+            int i;
+            for(i=0; i<[keys count]; i++) {
+                NSString* key = [keys objectAtIndex:i];
+                NSDictionary* episodeDictionary = [dict objectForKey:key];
+                NSString* filePath = [episodeDictionary objectForKey:@"filePath"];
+                
+                ZNLogP(DEBUG, @"Checking episodeNames filePath=%@", filePath);
+                if (filePath && ![fileManager fileExistsAtPath:filePath]) {
+                    ZNLogP(DEBUG, @"Removing episodeNames filePath=%@", filePath);
+                    [Preferences removePreferenceFromDictionary:@"episodeNames" forDictionaryKey:key save:NO];
+                    needToSave = YES;
+                }
+            }
+        }
+    }
+    
+    needToSave = [self cleanUpPathArray:@"ignoredEpisodes"] || needToSave;
+    needToSave = [self cleanUpPathDictionary:@"lastChoiceDictionary"] || needToSave;
+    
+    NSArray* array = [Preferences arrayPreference:@"completedDownloads"];
+    if (array) {
+        double maxInterval = -([Preferences recentShowsModifiedTimeMax]*60);
+        NSDate* maxModificationDate = [[NSDate date] addTimeInterval:maxInterval];
+        int i;
+        for(i=0; i<[array count]; i++) {
+            NSString* filePath = [array objectAtIndex:i];
+            
+            ZNLogP(DEBUG, @"Checking completedDownloads filePath=%@", filePath);
+            NSDictionary *fileAttributes = [fileManager fileAttributesAtPath:filePath traverseLink:YES];
+            NSDate *fileModDate = [fileAttributes objectForKey:NSFileModificationDate];
+            if (fileModDate && [maxModificationDate compare:fileModDate] == NSOrderedDescending) {
+                ZNLogP(DEBUG, @"Removing completedDownloads filePath=%@", filePath);
+                [Preferences removePreferenceFromArray:filePath forKey:@"completedDownloads" save:NO];
+                needToSave = YES;
+            }
+        }
+    }    
+    
+    if (needToSave) {
+        [Preferences save];
+    }
+    
+    [pool release];
+}
+
+- (BOOL)cleanUpPathDictionary:(NSString*)key {
+    ZNLogP(TRACE, "key=%@", key);
+    BOOL modified = NO;
+    NSFileManager* fileManager = [NSFileManager defaultManager];
+    NSDictionary* dict = [Preferences dictionaryPreferences:key];
+    if (dict) {
+        NSArray* keys = [NSArray arrayWithArray:[dict allKeys]];
+        if (keys) {
+            int i;
+            for(i=0; i<[keys count]; i++) {
+                NSString* dictionaryKey = [keys objectAtIndex:i];
+                NSString* filePath = [dict objectForKey:dictionaryKey];
+                ZNLogP(DEBUG, @"Checking %@.%@ filePath=%@", key, dictionaryKey, filePath);
+                if (filePath && ![fileManager fileExistsAtPath:filePath]) {
+                    ZNLogP(DEBUG, @"Removing %@.%@ filePath=%@", key, dictionaryKey, filePath);
+                    [Preferences removePreferenceFromDictionary:key forDictionaryKey:dictionaryKey save:NO];
+                    modified = YES;
+                }                
+            }
+        }
+    }
+    return modified;
+}
+
+- (BOOL)cleanUpPathArray:(NSString*)key {
+    ZNLogP(TRACE, "key=%@", key);
+    NSFileManager* fileManager = [NSFileManager defaultManager];
+    BOOL modified = NO;
+    NSArray* array = [NSArray arrayWithArray:[Preferences arrayPreference:key]];
+    int i;
+    for (i=0; i<[array count]; i++) {
+        NSString* filePath = [array objectAtIndex:i];
+        ZNLogP(DEBUG, @"Checking %@ filePath=%@", key, filePath);
+        if (filePath && ![fileManager fileExistsAtPath:filePath]) {
+            ZNLogP(DEBUG, @"Removing %@ filePath=%@", key, filePath);
+            [Preferences removePreferenceFromArray:filePath forKey:key save:NO];
+            modified = YES;
+        }
+    }
+    return modified;
+}
+
 - (BOOL)isEpisodeIgnored:(NSString*)path {
     ZNLogP(TRACE, @"path=%@", path);
-    NSMutableArray* array = [preferences arrayPreference:@"ignoredEpisodes"];
+    NSMutableArray* array = [Preferences arrayPreference:@"ignoredEpisodes"];
     BOOL ans = [array containsObject:path];
     return ans;
 }
 
-- (void)setEpisodeIgnored:(NSString*)path {
+- (void)setEpisodeIgnored:(NSString*)path save:(BOOL)save {
     ZNLogP(TRACE, @"path=%@", path);
-    [preferences addPreferenceToArray:path forKey:@"ignoredEpisodes" save:NO];
-    [preferences removePreferenceFromArray:path forKey:@"completedDownloads"];
-}
-
-- (NSString*)mediaDirectory {
-    ZNLog(TRACE);
-    return [preferences preference:TBS_MediaDirectory];
-}
-
-- (NSString*)tvShowDirectory {
-    ZNLog(TRACE);
-    return [preferences preference:TBS_TvShowDirectory];
-}
-
-- (NSArray*)mediaExtensions {
-    ZNLog(TRACE);
-    return [preferences arrayPreference:TSB_MediaExtensions];
+    [Preferences addPreferenceToArray:path forKey:@"ignoredEpisodes" save:NO];
+    [Preferences removePreferenceFromArray:path forKey:@"completedDownloads" save:save];
 }
 
 - (NSString*)absolutePath:(NSString*)relativePath {
     ZNLogP(TRACE, @"relativePath=%@", relativePath);
-    NSString* mediaDirectory = [self mediaDirectory];
+    NSString* mediaDirectory = [Preferences mediaDirectory];
     if (![relativePath compare:mediaDirectory]) return relativePath;
     
     NSMutableString* path = [[NSMutableString alloc] init];
-    [path setString:[self mediaDirectory]];
+    [path setString:mediaDirectory];
     [path appendString:relativePath];
     return path;
 }
@@ -324,6 +313,10 @@
 - (IBAction)reloadData:(id)sender {
     ZNLog(TRACE);
     [fsBrowser loadColumnZero];
+}
+
+- (IBAction)recentShowAction:(id)sender {
+    [recentShows recentShowAction:sender];
 }
 
 // ==========================================================
@@ -378,7 +371,7 @@
 
     if ([[fsBrowser selectedCells] count]==1) {
         NSString *nodePath = [fsBrowser path];
-        NSString *realPath = [[self mediaDirectory] stringByAppendingPathComponent:nodePath];
+        NSString *realPath = [[Preferences mediaDirectory] stringByAppendingPathComponent:nodePath];
         ZNLogP(DEBUG, @"nodePath=%@ realPath=%@", nodePath, realPath);
         
         BOOL isDirectory = NO;
@@ -407,16 +400,7 @@
 }
 
 - (IBAction)ignoreRecent:(id)sender {
-    ZNLogP(TRACE, @"sender=%@", sender);
-    NSArray* selection = [recentShowsArrayController selectedObjects];
-    
-    int i;
-    for (i=0; i<[selection count]; i++) {
-        Episode* episode = [selection objectAtIndex:i];
-        
-        [self setEpisodeIgnored:[[episode properties] objectForKey:@"filePath"]];
-        [recentShowsArrayController removeObject:episode];
-    }
+    [recentShows ignoreRecent:sender];
 }
 
 - (IBAction)browserDoubleClick:(id)sender {
@@ -434,15 +418,15 @@
     
     [[NSWorkspace sharedWorkspace] openFile: realPath];
     
-    [recentShowsArrayController removeObject:[pathDictionary parseEpisode:realPath]];
-    [self setEpisodeIgnored:realPath];
+    [recentShows removeObject:[pathDictionary parseEpisode:realPath]];
+    [self setEpisodeIgnored:realPath save:NO];
     
     if ([nodePath compare:realPath]) {
-        [self updateLastChoice:realPath];
+        [self updateLastChoice:realPath save:NO];
         [self refreshLastAndNextShows:realPath];
     }
     
-    
+    [Preferences save];
 }
 
 @end
@@ -452,7 +436,7 @@
 - (NSString*)fsPathToColumn:(int)column {
     ZNLogP(TRACE, @"column=%d", column);
     NSString *path = nil;
-    if(column==0) path = [NSString stringWithFormat:[self mediaDirectory]];
+    if(column==0) path = [NSString stringWithFormat:[Preferences mediaDirectory]];
     //if(column==0) path = [NSString stringWithFormat:@"/Users"];
     else path = [fsBrowser pathToColumn: column];
     return path;
@@ -467,20 +451,6 @@
 - (void) applicationWillTerminate: (NSNotification *)note
 {
     ZNLogP(TRACE, @"note=%@", note);
-    //NSLog(@"Saving preferences:\n%@", preferences);
-    //[self writePreferences];
-}
-
-- (NSMutableArray*)recentShows {
-    ZNLog(TRACE);
-    return recentShows;
-}
-
-- (void)setRecentShows:(NSMutableArray*)newArray {
-    ZNLogP(TRACE, @"newArray=%@", newArray);
-    [newArray retain];
-    [recentShows autorelease];
-    recentShows = newArray;
 }
 
 - (NSMutableArray*)lastShow {
@@ -507,30 +477,15 @@
     nextShow = newArray;    
 }
 
-- (void)updateLastChoice:(NSString*)path {
+- (void)updateLastChoice:(NSString*)path save:(BOOL)save {
     NSString *parent = [path stringByDeletingLastPathComponent];
     
-    while ( [parent compare:[self mediaDirectory]] ) {
-        [preferences setPreferenceToDictionary:path forDictionaryKey:parent forKey:@"lastChoiceDictionary" save:NO];
+    while ( [parent compare:[Preferences mediaDirectory]] ) {
+        [Preferences setPreferenceToDictionary:path forDictionaryKey:parent forKey:@"lastChoiceDictionary" save:NO];
         parent = [parent stringByDeletingLastPathComponent];
     }
-    [preferences save];
-}
-
-- (IBAction)recentShowAction:(id)tableView {
-    ZNLogP(TRACE, @"tableView=%@", tableView);
-    int episodeRow = [tableView clickedRow];
-    if (episodeRow >= 0) {
-        NSArray* array = [recentShowsArrayController arrangedObjects];
-        Episode* episode = [array objectAtIndex:episodeRow];
-        NSString* filePath = [[episode properties] objectForKey:@"filePath"];
-        //NSLog(@"episode: %@ watched: %d", [episode filePath], [self isShowWatched:filePath]);
-        [[NSWorkspace sharedWorkspace] openFile:filePath ];
-        [recentShowsArrayController removeObject:episode];
-        [self setEpisodeIgnored:filePath];
-        
-        [self updateLastChoice:filePath];
-        [self refreshLastAndNextShows:filePath];
+    if (save) {
+        [Preferences save];
     }
 }
 
@@ -543,10 +498,12 @@
         NSString* filePath = [[episode properties] objectForKey:@"filePath"];
         //NSLog(@"episode: %@ watched: %d", [episode filePath], [self isShowWatched:filePath]);
         [[NSWorkspace sharedWorkspace] openFile:filePath ];
-        [recentShowsArrayController removeObject:episode];
-        [self setEpisodeIgnored:filePath];
         
-        [self updateLastChoice:filePath];
+        [recentShows removeObject:episode];
+        [self setEpisodeIgnored:filePath save:NO];
+        
+        [self updateLastChoice:filePath save:NO];
+        [Preferences save];
         [self refreshLastAndNextShows:filePath];
     }
 }
@@ -560,142 +517,10 @@
         NSString* filePath = [[episode properties] objectForKey:@"filePath"];
         //NSLog(@"episode: %@ watched: %d", [episode filePath], [self isShowWatched:filePath]);
         [[NSWorkspace sharedWorkspace] openFile:filePath ];
+        [recentShows removeObject:episode];
+        [self setEpisodeIgnored:filePath save:NO];
     }
 }
-
-+ (void)spawnCheckNewShowsThread {
-    ZNLog(TRACE);
-    [NSThread detachNewThreadSelector:@selector(CheckNewShows:) toTarget:[AppController class] withObject:nil];
-}
-
-- (int)recentShowsModifiedTimeMin {
-    ZNLog(TRACE);
-    NSString* minStr = [preferences preference:TBS_RecentShowsModifiedTimeMin];
-    if (!minStr) {
-        NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
-        minStr = [defaults objectForKey:TBS_RecentShowsModifiedTimeMin];
-        [preferences setPreference:minStr forKey:TBS_RecentShowsModifiedTimeMin];
-    }
-    return [minStr intValue];
-}
-
-- (int)recentShowsModifiedTimeMax {
-    ZNLog(TRACE);
-    NSString* maxStr = [preferences preference:TBS_RecentShowsModifiedTimeMax];
-    if (!maxStr) {
-        NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
-        maxStr = [defaults objectForKey:TBS_RecentShowsModifiedTimeMax];
-        [preferences setPreference:maxStr forKey:TBS_RecentShowsModifiedTimeMax];
-    }
-    return [maxStr intValue];
-}
-
-- (void)updateRecentShows:(NSTimer*)theTimer {
-    ZNLogP(TRACE, @"theTimer=%@", theTimer);
-    NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
-    
-    NSArray* mediaExtensions = [self mediaExtensions];
-    NSArray* timeArgs = [NSArray arrayWithObjects:[[PathDictionary sharedPathDictionary] tvShowPath], @"-type", @"f", @"-mmin", [NSString stringWithFormat:@"+%d", [self recentShowsModifiedTimeMin]], @"-mmin", [NSString stringWithFormat:@"-%d", [self recentShowsModifiedTimeMax]], nil];
-    NSMutableArray* args = [[NSMutableArray alloc] init];
-    [args addObjectsFromArray:timeArgs];
-    
-    [args addObject:@"("];
-    int i;
-    for (i=0; i<[mediaExtensions count]; i++) {
-        if (i>0) {
-            [args addObject:@"-o"];
-        }
-        [args addObject:@"-name"];
-        [args addObject:[[NSString stringWithString:@"*."] stringByAppendingString:[mediaExtensions objectAtIndex:i]]];
-    }
-    [args addObject:@")"];
-    
-    int size;
-    NSMutableString* result = [[NSMutableString alloc] init];
-    [result setString:@""];
-    NSPipe *newPipe = [NSPipe pipe];
-    NSFileHandle *readHandle = [newPipe fileHandleForReading];
-    NSData *inData = nil;
-    NSTask* task = [[NSTask alloc] init];
-    [task setStandardOutput:newPipe];
-    [task setLaunchPath:@"/usr/bin/find"];
-    [task setArguments:args];
-    //NSTask* task = [NSTask launchedTaskWithLaunchPath:@"/usr/bin/find" arguments:args];
-    
-    NSMutableString* argsStr = [[NSMutableString alloc] init];
-    [argsStr setString:@""];
-
-    for (i=0; i<[args count]; i++) {
-        [argsStr appendString:[args objectAtIndex:i]];
-        [argsStr appendString:@" "];
-    }
-    
-    ZNLogP(DEBUG, @"args: %@", argsStr);
-    [task launch];
-    
-    while ((inData = [readHandle availableData]) && [inData length]) {
-        size = [inData length];
-        //NSLog(@"data size: %d", size);
-        char buf[size+1];
-        buf[size] = '\0';
-        [inData getBytes:buf];
-        [result appendFormat:@"%s", buf];
-    }
-    ZNLogP(DEBUG, @"%@", result);
-    
-    if ([recentShows count] > 0) {
-        [recentShowsArrayController removeObjects:recentShows];
-    }
-    NSArray* paths = [result componentsSeparatedByString:@"\n"];
-    
-    id obj = [recentShowsArrayController content];
-    
-    for (i=0; i<[paths count]; i++) {
-        NSString* path = [paths objectAtIndex:i];
-        //NSLog(@"path: #%@#", path);
-        BOOL isIgnored = [self isEpisodeIgnored:path];
-        BOOL isComplete = [self isDownloadComplete:path];
-        if (path && [path compare:@""] && !isIgnored && isComplete) {
-            Episode* episode = [[PathDictionary sharedPathDictionary] parseEpisode:path];
-            if (episode) {
-            //NSLog(@"episode:\n%@", [episode properties]);
-            [recentShowsArrayController addObject:episode];
-            }
-        }
-        
-    }
-    [pool release];
-}
-
-- (double)allowableIncomplete {
-    ZNLog(TRACE);
-    return [preferences preferenceAsDouble:TBS_AllowablePercentNullForDownload];
-}
-
-- (BOOL)isDownloadComplete:(NSString*)filePath {
-    ZNLogP(TRACE, @"filePath=%@", filePath);
-    if ([preferences arrayContains:filePath forKey:@"completedDownloads"]) return YES;
-    
-    NSData* data = [[NSFileManager defaultManager] contentsAtPath:filePath];
-    const char* buf = [data bytes];
-    long zeroByteCount = 0;
-    
-    int i;
-    for (i=0; i<[data length]; i++) {
-        if (*(buf+i) == '\0') zeroByteCount++;
-    }
-    
-    double percentIncomplete = (double)zeroByteCount/(double)[data length];
-    double allowableIncomplete = [self allowableIncomplete];
-    if (percentIncomplete < allowableIncomplete) {
-        [preferences addPreferenceToArray:filePath forKey:@"completedDownloads"];
-        return YES;
-    }
-    return NO;
-}
-
-
-
 
 @end
 

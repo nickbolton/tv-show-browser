@@ -45,6 +45,7 @@
 #import "FSNodeInfo.h"
 #import "PathDictionary.h"
 #import "ZNLog.h"
+#import "Preferences.h"
 
 @implementation FSNodeInfo 
 
@@ -61,7 +62,7 @@
     parentNode = parent;
     relativePath = [path retain];
     
-    NSString* tvShowPath = [[PathDictionary sharedPathDictionary] tvShowPath];
+    NSString* tvShowPath = [Preferences tvShowDirectory];
     if ([[self absolutePath] rangeOfString:tvShowPath].location != NSNotFound) {
         int numShowDirectoryComponents = [[tvShowPath pathComponents] count];
         NSArray* components = [[self absolutePath] pathComponents];
@@ -87,9 +88,20 @@
     NSEnumerator   *subNodePaths = [[[NSFileManager defaultManager] directoryContentsAtPath: [self absolutePath]] objectEnumerator];
     NSMutableArray *subNodes = [NSMutableArray array];
     
+    double maxInterval = -([Preferences recentShowsModifiedTimeMax]*60);
+    NSDate* maxModificationDate = [[NSDate date] addTimeInterval:maxInterval];
+    NSFileManager* fileManager = [NSFileManager defaultManager];
+    BOOL isDirectory = NO;
+    
     while ((subNodePath=[subNodePaths nextObject])) {
         FSNodeInfo *node = [FSNodeInfo nodeWithParent:self atRelativePath: subNodePath];
-        [subNodes addObject: node];
+        NSString* filePath = [node absolutePath];
+        NSDictionary *fileAttributes = [fileManager fileAttributesAtPath:filePath traverseLink:YES];
+        NSDate *fileModDate = [fileAttributes objectForKey:NSFileModificationDate];
+        [fileManager fileExistsAtPath:filePath isDirectory:&isDirectory];
+        if (isDirectory || (fileModDate && [maxModificationDate compare:fileModDate] == NSOrderedDescending) || [Preferences arrayContains:filePath forKey:@"completedDownloads"]) {
+            [subNodes addObject: node];
+        }
     }
     return subNodes;
 }
@@ -100,8 +112,8 @@ int tvShowSorter(id n1, id n2, void *context) {
     FSNodeInfo* node2 = n2;
     PathDictionary* pathDictionary = [PathDictionary sharedPathDictionary];
     
-    Episode* e1 = [pathDictionary parseEpisode:[n1 absolutePath]];
-    Episode* e2 = [pathDictionary parseEpisode:[n2 absolutePath]];
+    Episode* e1 = [pathDictionary parseEpisode:[node1 absolutePath]];
+    Episode* e2 = [pathDictionary parseEpisode:[node2 absolutePath]];
     
     if ([e1 season] < [e2 season]) {
         return NSOrderedAscending;
@@ -131,7 +143,8 @@ int tvShowSorter(id n1, id n2, void *context) {
             }
         }
     }
-    if (((fileCount*100)/[visibleSubNodes count]) > 90 && [[PathDictionary sharedPathDictionary] isTvShowPath:[self absolutePath]]) {
+    
+    if ([visibleSubNodes count] > 0 && ((fileCount*100)/[visibleSubNodes count]) > 90 && [[PathDictionary sharedPathDictionary] isTvShowPath:[self absolutePath]]) {
         ZNLogP(DEBUG, @"sorting tv shows: %@", [self absolutePath]);
         return [visibleSubNodes sortedArrayUsingFunction:tvShowSorter context:NULL];
     }

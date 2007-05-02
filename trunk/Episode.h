@@ -14,4 +14,5 @@
 - (int)episode;
 - (NSString*)episodeName;
 - (NSString*)showName;
+- (NSString*)filePath;
 @end

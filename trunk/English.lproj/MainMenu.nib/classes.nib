@@ -5,6 +5,7 @@
                 browserDoubleClick = id; 
                 browserSingleClick = id; 
                 ignoreRecent = id; 
+                recentShowAction = id; 
                 reloadData = id; 
             }; 
             CLASS = AppController; 
@@ -15,7 +16,7 @@
                 lastShowTableView = NSTableView; 
                 nextShowArrayController = NSArrayController; 
                 nextShowTableView = NSTableView; 
-                recentShowsArrayController = NSArrayController; 
+                recentShows = RecentShows; 
                 recentShowsTableView = NSTableView; 
             }; 
             SUPERCLASS = NSObject; 
@@ -30,6 +31,17 @@
             CLASS = RecentShowController; 
             LANGUAGE = ObjC; 
             OUTLETS = {arrayController = NSArrayController; tableView = NSTableView; }; 
+            SUPERCLASS = NSObject; 
+        }, 
+        {
+            ACTIONS = {ignoreRecent = id; }; 
+            CLASS = RecentShows; 
+            LANGUAGE = ObjC; 
+            OUTLETS = {
+                appController = AppController; 
+                recentShowsArrayController = NSArrayController; 
+                recentShowsTableView = NSTableView; 
+            }; 
             SUPERCLASS = NSObject; 
         }, 
         {CLASS = Show; LANGUAGE = ObjC; SUPERCLASS = NSObject; }

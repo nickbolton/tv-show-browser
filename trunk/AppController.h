@@ -7,25 +7,25 @@
 #import <Cocoa/Cocoa.h>
 #import "CSRegex.h"
 #import "FSNodeInfo.h"
-#import "Preferences.h"
+#import "RecentShows.h"
 
 @interface AppController : NSObject {
 @private
     IBOutlet NSBrowser    *fsBrowser;
-    IBOutlet NSArrayController* recentShowsArrayController;
     IBOutlet NSArrayController* lastShowArrayController;
     IBOutlet NSArrayController* nextShowArrayController;
     IBOutlet NSTableView* recentShowsTableView;
     IBOutlet NSTableView* lastShowTableView;
     IBOutlet NSTableView* nextShowTableView;
-    NSMutableArray* recentShows;
+    IBOutlet RecentShows* recentShows;
+    
+    //NSMutableArray* recentShows;
     NSMutableDictionary* directoryContentsDictionary;
     NSMutableArray* lastShow;
     NSMutableArray* nextShow;
     
-    Preferences* preferences;
     FSNodeInfo* parent;
-    NSTimer* recentShowsTimer;
+    //NSTimer* recentShowsTimer;
 }
 
 // Force a reload of column zero and thus, all the data.
@@ -34,11 +34,13 @@
 // Methods sent by the browser to us from theBrowser.
 - (IBAction)browserSingleClick:(id)sender;
 - (IBAction)browserDoubleClick:(id)sender;
+- (IBAction)recentShowAction:(id)sender;
 - (IBAction)ignoreRecent:(id)sender;
 
 
-- (NSMutableArray*)recentShows;
-- (void)setRecentShows:(NSMutableArray*)newArray;
 - (NSMutableArray*)lastShow;
 - (void)setLastShow:(NSMutableArray*)newArray;
+- (NSMutableArray*)nextShow;
+- (void)setNextShow:(NSMutableArray*)newArray;
+
 @end

@@ -47,7 +47,6 @@
 #import "FSBrowserCell.h"
 #import "PathDictionary.h"
 #import "Episode.h"
-#import "Preferences.h"
 #import "ZNLog.h"
 
 

@@ -8,7 +8,6 @@
 
 #import "ZNLog.h"
 #import "Preferences.h"
-#import "defaults.h"
 
 @implementation ZNLog
 
@@ -20,13 +19,8 @@ static logLevel = -1;
     if (logLevel >= 0) return logLevel;
     
     initializing = YES;
-    Preferences* prefs = [Preferences sharedPreferences];
-    NSString* key = TBS_LogLevel;
     
-    logLevel = ERROR;
-    if ([prefs preference:key]) {
-        logLevel = [prefs preferenceAsInt:key];
-    }
+    logLevel = [Preferences preferenceAsDouble:@"logLevel"];
         
     initializing = NO;
     return logLevel;
