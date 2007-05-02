@@ -53,7 +53,6 @@
 #import "Preferences.h"
 #import "ZNLog.h"
 #import "RecentShows.h"
-#import "Prefs.h"
 
 #define MAX_VISIBLE_COLUMNS 4
 
