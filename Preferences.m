@@ -8,6 +8,7 @@
 
 #import "Preferences.h"
 #import "ZNLog.h"
+#import "defaults.h"
 
 @implementation Preferences
 
@@ -30,217 +31,381 @@ static Preferences *sharedPreferences = nil;
     @synchronized(self) {
         if (sharedPreferences == nil) {
             sharedPreferences = [super allocWithZone:zone];
+            [sharedPreferences initializePreferences];
             return sharedPreferences;  // assignment and return on first allocation
         }
     }
     return nil; //on subsequent allocation attempts return nil
 }
 
-- (id)copyWithZone:(NSZone *)zone
++ (id)copyWithZone:(NSZone *)zone
 {
     //ZNLogP(TRACE, @"zone=%@", zone);
     return self;
 }
 
-- (id)retain
++ (id)retain
 {
     //ZNLog(TRACE);
     return self;
 }
 
-- (unsigned)retainCount
++ (unsigned)retainCount
 {
     //ZNLog(TRACE);
     return UINT_MAX;  //denotes an object that cannot be released
 }
 
-- (void)release
++ (void)release
 {
     //ZNLog(TRACE);
     //do nothing
 }
 
-- (id)autorelease
++ (id)autorelease
 {
     //ZNLog(TRACE);
     return self;
 }
 
-- (id) init
-{
-    //ZNLog(TRACE);
-    if (self = [super init])
-    {
-        NSDictionary* dict = [NSDictionary dictionaryWithContentsOfFile:
-            [@"~/Library/Preferences/TvShowBrowser.plist" 
-                stringByExpandingTildeInPath]];
-        prefs = [[NSMutableDictionary alloc] init];
-        [prefs addEntriesFromDictionary:dict];
-        
-        defaults = [NSUserDefaults standardUserDefaults];
-    }
+- (void)initializePreferences {
+    NSDictionary* dict = [NSDictionary dictionaryWithContentsOfFile:
+        [@"~/Library/Preferences/TvShowBrowser.plist" 
+            stringByExpandingTildeInPath]];
+    prefs = [[NSMutableDictionary alloc] init];
+    [prefs addEntriesFromDictionary:dict];
+    
+    defaults = [NSUserDefaults standardUserDefaults];
+    
+    NSMutableDictionary *appDefs = [NSMutableDictionary dictionary]; 
+    
+    [appDefs setObject:[@"~/Movies/TvShows" stringByExpandingTildeInPath] 
+                forKey:TBS_TvShowDirectory]; 
+    [appDefs setObject:[@"~/Movies" stringByExpandingTildeInPath]
+                forKey:TBS_MediaDirectory];
+    [appDefs setObject:[NSMutableArray arrayWithObjects:@"hdtv",
+        @"lol",
+        @"xvid",
+        @"xor",
+        @"fov",
+        @"\[?vtv\]?",
+        @"fqm",
+        @"yestv",
+        @"eztv",
+        @"proper",
+        @"repack",
+        @"avi",
+        @"dvdrip",
+        @"720p",
+        @"ws",
+        @"hr",
+        @"webrip",
+        @"divx",
+        @"pdtv",
+        @"dsr",
+        @"dvdscr",
+        @"mpg",
+        @"mpeg",
+        @"dimension",
+        @"memetic",
+        @"ctu",
+        @"mkv",
+        @"aerial",
+        @"notv",
+        @"x264",
+        @"saints",
+        @"hv",
+        @"kyr",
+        @"2hd",
+        @"2sd",
+        @"caph",
+        @"bluetv",
+        @"fpn",
+        @"sorny",
+        @"preair",
+        @"crimson",
+        @"orenji",
+        @"loki",
+        @"ndr",
+        @"rmvb",
+        @"asd",
+        @"vf",
+        @"dontask",
+        @"bhd",
+        nil]
+                forKey:TBS_ReleaseGroupExpressions];
+    [appDefs setObject:[NSMutableArray arrayWithObjects:
+        @"[sS]([0-9]+)[eE]([0-9]+)(.*)",
+        @"([0-9]+)[xX]([0-9]+)(.*)",
+        @"([1-9][0-9]?)([0-9][0-9])(.*)",
+        nil]
+                forKey:TBS_EpisodeExpressions];
+    [appDefs setObject:@"http://epguides.com/" 
+                forKey:TBS_EpisodeSite];
+    [appDefs setObject:[NSMutableArray arrayWithObjects:@"[", @"]", @"(", @")", nil] 
+                forKey:TBS_EpisodeFilenameTrimStrings];
+    [appDefs setObject:[NSMutableArray arrayWithObjects:@"_", @"-", @".", nil] 
+                forKey:TBS_EpisodeFilenameWSStrings];
+    [appDefs setObject:[NSMutableArray arrayWithObjects:@"  ", nil] 
+                forKey:TBS_EpisodeFilenameWSAll];
+    
+    [appDefs setObject:@"0.02"
+                forKey:TBS_AllowablePercentNullForDownload];
+    
+    [appDefs setObject:[NSString stringWithFormat:@"%d", ERROR]
+                forKey:TBS_LogLevel];
+    
+    [appDefs setObject:[NSMutableArray arrayWithObjects:@"avi", @"mpg", @"mpeg", nil] 
+                forKey:TSB_MediaExtensions]; 
+    [appDefs setObject:@"5" 
+                forKey:TBS_RecentShowsModifiedTimeMin];
+    [appDefs setObject:@"4320" 
+                forKey:TBS_RecentShowsModifiedTimeMax];
+    [appDefs setObject:@"300.0" 
+                forKey:TBS_RecentShowsRefreshInterval];
+    
+    [defaults registerDefaults:appDefs];
 }
 
-- (void) dealloc
++ (void) dealloc
 {   
     ZNLog(TRACE);
     [prefs release];
     [super dealloc];
 }
 
-- (void)save {
++ (void)save {
+    [[Preferences sharedPreferences] __save];
+}
+
+- (void)__save {
     ZNLog(TRACE);
     ZNLogP(DEBUG, @"Saving preferences:\n%@", prefs);
     [prefs writeToFile:[@"~/Library/Preferences/TvShowBrowser.plist"
         stringByExpandingTildeInPath] atomically: TRUE];
 }
 
-- (NSString*)preference:(NSString*)key {
+- (NSString*)__preference:(NSString*)key {
     ZNLogP(TRACE, @"key=%@", key);
     NSString* p = [prefs objectForKey:key];
     if (!p) {
         p = [defaults objectForKey:key];
         if (p != nil) {
-            [self setPreference:p forKey:key];
+            [self __setPreference:p forKey:key];
         }
     }
     return p;
 }
 
-- (void)setPreference:(NSString*)value forKey:(NSString*)key {
-    ZNLogP(TRACE, @"value=%@ key=%@", value, key);
-    [self setPreference:value forKey:key save:YES];
++ (NSString*)preference:(NSString*)key {
+    return [[Preferences sharedPreferences] __preference:key];
 }
 
-- (void)setPreference:(NSString*)value forKey:(NSString*)key save:(BOOL)save {
+- (void)__setPreference:(NSString*)value forKey:(NSString*)key {
+    ZNLogP(TRACE, @"value=%@ key=%@", value, key);
+    [self __setPreference:value forKey:key save:YES];
+}
+
++ (void)setPreference:(NSString*)value forKey:(NSString*)key {
+    [[Preferences sharedPreferences] __setPreference:value forKey:key];
+}
+
+- (void)__setPreference:(NSString*)value forKey:(NSString*)key save:(BOOL)save {
     ZNLogP(TRACE, @"value=%@ key=%@ save=%d", value, key, save);
     [prefs setObject:value forKey:key];
     if (save) {
-        [self save];
+        [self __save];
     }
 }
 
-- (int)preferenceAsInt:(NSString*)key {
++ (void)setPreference:(NSString*)value forKey:(NSString*)key save:(BOOL)save {
+    [[Preferences sharedPreferences] __setPreference:value forKey:key save:save];
+}
+
+- (int)__preferenceAsInt:(NSString*)key {
     ZNLogP(TRACE, @"key=%@", key);
-    NSString* pref = [self preference:key];
+    NSString* pref = [self __preference:key];
     if (pref) {
         return [pref intValue];
     }
     return 0;
 }
 
-- (void)setPreferenceAsInt:(int)value forKey:(NSString*)key {
++ (int)preferenceAsInt:(NSString*)key {
+    return [[Preferences sharedPreferences] __preferenceAsInt:key];
+}
+
+- (void)__setPreferenceAsInt:(int)value forKey:(NSString*)key {
     ZNLogP(TRACE, @"value=%d key=%@", value, key);
-    [self setPreferenceAsInt:value forKey:key save:YES];
+    [self __setPreferenceAsInt:value forKey:key save:YES];
 }
 
-- (void)setPreferenceAsInt:(int)value forKey:(NSString*)key save:(BOOL)save {
++ (void)setPreferenceAsInt:(int)value forKey:(NSString*)key {
+    [[Preferences sharedPreferences] __setPreferenceAsInt:value forKey:key];
+}
+
+- (void)__setPreferenceAsInt:(int)value forKey:(NSString*)key save:(BOOL)save {
     ZNLogP(TRACE, @"value=%d key=%@ save=%d", value, key, save);
-    [self setPreference:[NSString stringFromFormat:@"%d", value] forKey:key save:save];
+    [self __setPreference:[NSString stringFromFormat:@"%d", value] forKey:key save:save];
 }
 
-- (double)preferenceAsDouble:(NSString*)key {
++ (void)setPreferenceAsInt:(int)value forKey:(NSString*)key save:(BOOL)save {
+    [[Preferences sharedPreferences] __setPreferenceAsInt:value forKey:key save:save];
+}
+
+- (double)__preferenceAsDouble:(NSString*)key {
     ZNLogP(TRACE, @"key=%@", key);
-    NSString* pref = [self preference:key];
+    NSString* pref = [self __preference:key];
     if (pref) {
         return [pref doubleValue];
     }
     return 0.0;
 }
 
-- (void)setPreferenceAsDouble:(double)value forKey:(NSString*)key {
++ (double)preferenceAsDouble:(NSString*)key {
+    return [[Preferences sharedPreferences] __preferenceAsDouble:key];
+}
+
+- (void)__setPreferenceAsDouble:(double)value forKey:(NSString*)key {
     ZNLogP(TRACE, @"value=%f key=%@", value, key);
-    [self setPreferenceAsDouble:value forKey:key save:YES];
+    [self __setPreferenceAsDouble:value forKey:key save:YES];
 }
 
-- (void)setPreferenceAsDouble:(double)value forKey:(NSString*)key save:(BOOL)save {
++ (void)setPreferenceAsDouble:(double)value forKey:(NSString*)key {
+    [[Preferences sharedPreferences] __setPreferenceAsDouble:value forKey:key];
+}
+
+- (void)__setPreferenceAsDouble:(double)value forKey:(NSString*)key save:(BOOL)save {
     ZNLogP(TRACE, @"value=%f key=%@ save=%d", value, key, save);
-    [self setPreference:[NSString stringFromFormat:@"%f", value] forKey:key save:save];
+    [self __setPreference:[NSString stringFromFormat:@"%f", value] forKey:key save:save];
 }
 
-- (BOOL)arrayContains:(NSString*)value forKey:(NSString*)key {
++ (void)setPreferenceAsDouble:(double)value forKey:(NSString*)key save:(BOOL)save {
+    [[Preferences sharedPreferences] __setPreferenceAsDouble:value forKey:key save:save];
+}
+
+- (BOOL)__arrayContains:(NSString*)value forKey:(NSString*)key {
     ZNLogP(TRACE, @"value=%@ key=%@", value, key);
-    return [[self arrayPreference:key] containsObject:value];
+    return [[self __arrayPreference:key] containsObject:value];
 }
 
-- (NSArray*)arrayPreference:(NSString*)key {
++ (BOOL)arrayContains:(NSString*)value forKey:(NSString*)key {
+    return [[Preferences sharedPreferences] __arrayContains:value forKey:key];
+}
+
+- (NSArray*)__arrayPreference:(NSString*)key {
     ZNLogP(TRACE, @"key=%@", key);
     NSArray* array = [prefs objectForKey:key];
     if (!array) {
         array = [defaults objectForKey:key];
         if (array) {
-            [self setPreference:array forKey:key];
+            [self __setPreference:array forKey:key];
         }
     }
     return array;
 }
 
-- (void)addPreferencesToArray:(NSArray*)array forKey:(NSString*)key save:(BOOL)save {
++ (NSArray*)arrayPreference:(NSString*)key {
+    return [[Preferences sharedPreferences] __arrayPreference:key];
+}
+
+- (void)__addPreferencesToArray:(NSArray*)array forKey:(NSString*)key save:(BOOL)save {
     ZNLogP(TRACE, @"array=%@ key=%@ save=%d", array, key, save);
     if (array) {
         int i;
-        for (i=0; i<[array count]; i++) {
-            [self addPreferenceToArray:[array objectAtIndex:i] forKey:key save:NO];
+        @synchronized(self) {
+            for (i=0; i<[array count]; i++) {
+                [self __addPreferenceToArray:[array objectAtIndex:i] forKey:key save:NO];
+            }
         }
-        [self save];
+        if (save) {
+            [self __save];
+        }
     }
 }
 
-- (void)addPreferenceToArray:(NSString*)value forKey:(NSString*)key {
++ (void)addPreferencesToArray:(NSArray*)array forKey:(NSString*)key save:(BOOL)save {
+    [[Preferences sharedPreferences] __addPreferencesToArray:array forKey:key save:save];
+}
+
+- (void)__addPreferenceToArray:(NSString*)value forKey:(NSString*)key {
     ZNLogP(TRACE, @"value=%@ key=%@", value, key);
-    [self addPreferenceToArray:value forKey:key save:YES];
+    [self __addPreferenceToArray:value forKey:key save:YES];
 }
 
-- (void)addPreferenceToArray:(NSString*)value forKey:(NSString*)key save:(BOOL)save {
++ (void)addPreferenceToArray:(NSString*)value forKey:(NSString*)key {
+    [[Preferences sharedPreferences] __addPreferenceToArray:value forKey:key];
+}
+
+- (void)__addPreferenceToArray:(NSString*)value forKey:(NSString*)key save:(BOOL)save {
     ZNLogP(TRACE, @"value=%@ key=%@ save=%d", value, key, save);
-    NSArray* array = [self arrayPreference:key];
-    NSMutableArray* mutableArray = [[NSMutableArray alloc] init];
     
-    if (array) {
-        [mutableArray addObjectsFromArray:array];
-    }
-    [prefs setObject:mutableArray forKey:key];
-    
-    [mutableArray addObject:value];
-    if (save) {
-        [self save];
-    }
-}
-
-- (void)removePreferenceFromArray:(NSString*)value forKey:(NSString*)key {
-    ZNLogP(TRACE, @"value=%@ key=%@", value, key);
-    [self removePreferenceFromArray:value forKey:key save:YES];
-}
-
-- (void)removePreferenceFromArray:(NSString*)value forKey:(NSString*)key save:(BOOL)save {
-    ZNLogP(TRACE, @"value=%@ key=%@ save=%d", value, key, save);
-    NSArray* array = [self arrayPreference:key];
-    if (array) {
-        NSMutableArray* mutableArray;
+    @synchronized(self) {
+        NSArray* array = [self __arrayPreference:key];
+        if ([array containsObject:value]) return;
         
-        if (![array isKindOfClass:[NSMutableArray class]]) {
-            mutableArray = [[NSMutableArray alloc] initWithArray:array];
-            [prefs setObject:mutableArray forKey:key];
-            [array autorelease];            
-        } else {
-            mutableArray = array;
+        NSMutableArray* mutableArray = [[NSMutableArray alloc] init];
+        
+        if (array) {
+            [mutableArray addObjectsFromArray:array];
         }
+        [prefs setObject:mutableArray forKey:key];
+        
+        [mutableArray addObject:value];
+    }
+    if (save) {
+        [self __save];
+    }
+}
+
++ (void)addPreferenceToArray:(NSString*)value forKey:(NSString*)key save:(BOOL)save {
+    [[Preferences sharedPreferences] __addPreferenceToArray:value forKey:key save:save];
+}
+
+- (void)__removePreferenceFromArray:(NSString*)value forKey:(NSString*)key {
+    ZNLogP(TRACE, @"value=%@ key=%@", value, key);
+    [self __removePreferenceFromArray:value forKey:key save:YES];
+}
+
++ (void)removePreferenceFromArray:(NSString*)value forKey:(NSString*)key {
+    [[Preferences sharedPreferences] __removePreferenceFromArray:value forKey:key];
+}
+
+- (void)__removePreferenceFromArray:(NSString*)value forKey:(NSString*)key save:(BOOL)save {
+    ZNLogP(TRACE, @"value=%@ key=%@ save=%d", value, key, save);
+    
+    @synchronized(self) {
+        NSArray* array = [self __arrayPreference:key];
+        NSMutableArray* mutableArray = [[NSMutableArray alloc] init];
+        
+        if (array) {
+            [mutableArray addObjectsFromArray:array];
+        }
+        [prefs setObject:mutableArray forKey:key];
         
         [mutableArray removeObject:value];
-        if (save) {
-            [self save];
-        }
+    }
+    if (save) {
+        [self __save];
     }
 }
 
-- (NSDictionary*)dictionaryPreferences:(NSString*)key {
++ (void)removePreferenceFromArray:(NSString*)value forKey:(NSString*)key save:(BOOL)save {
+    [[Preferences sharedPreferences] __removePreferenceFromArray:value forKey:key save:save];
+}
+
+- (NSDictionary*)__dictionaryPreferences:(NSString*)key {
     ZNLogP(TRACE, @"key=%@", key);
     return [prefs objectForKey:key];
 }
 
-- (NSString*)dictionaryPreference:(NSString*)key forDictionaryKey:(NSString*)dictionaryKey {
++ (NSDictionary*)dictionaryPreferences:(NSString*)key {
+    return [[Preferences sharedPreferences] __dictionaryPreferences:key];
+}
+
+- (NSString*)__dictionaryPreference:(NSString*)key forDictionaryKey:(NSString*)dictionaryKey {
     ZNLogP(TRACE, @"key=%@ dictionaryKey=%@", key, dictionaryKey);
-    NSDictionary* dictionary = [self dictionaryPreferences:key];
+    NSDictionary* dictionary = [self __dictionaryPreferences:key];
     NSString* value;
     if (dictionary) {
         value = [dictionary objectForKey:dictionaryKey];
@@ -248,31 +413,128 @@ static Preferences *sharedPreferences = nil;
     return value;
 }
 
-- (void)setPreferenceToDictionary:(NSString*)value forDictionaryKey:(NSString*)dictionaryKey forKey:(NSString*)key {
-    ZNLogP(TRACE, @"value=%@ key=%@ dictionaryKey=%@", value, key, dictionaryKey);
-    [self setPreferenceToDictionary:value forDictionaryKey:dictionaryKey forKey:key save:YES];
++ (NSString*)dictionaryPreference:(NSString*)key forDictionaryKey:(NSString*)dictionaryKey {
+    return [[Preferences sharedPreferences] __dictionaryPreference:key forDictionaryKey:dictionaryKey];
 }
 
-- (void)setPreferenceToDictionary:(NSString*)value forDictionaryKey:(NSString*)dictionaryKey forKey:(NSString*)key save:(BOOL)save {
-    ZNLogP(TRACE, @"value=%@ key=%@ dictionaryKey=%@ save=%d", value, key, dictionaryKey, save);
-    NSDictionary* dictionary = [self dictionaryPreferences:key];
-    if (!dictionary) {
-        dictionary = [[NSMutableDictionary alloc] init];
-        [prefs setObject:dictionary forKey:key];
-    }
-    NSMutableDictionary* mutableDictionary;
-    if (![dictionary isKindOfClass:[NSMutableDictionary class]]) {
-        mutableDictionary = [[NSMutableDictionary alloc] initWithDictionary:dictionary];
+- (void)__removePreferenceFromDictionary:(NSString*)key forDictionaryKey:(NSString*)dictionaryKey {
+    ZNLogP(TRACE, @"key=%@ dictionaryKey=%@", key, dictionaryKey);
+    [self __removePreferenceFromDictionary:key forDictionaryKey:dictionaryKey save:YES];
+}
+
++ (void)removePreferenceFromDictionary:(NSString*)key forDictionaryKey:(NSString*)dictionaryKey {
+    [[Preferences sharedPreferences] __removePreferenceFromDictionary:key forDictionaryKey:dictionaryKey];
+}
+
+- (void)__removePreferenceFromDictionary:(NSString*)key forDictionaryKey:(NSString*)dictionaryKey save:(BOOL)save {
+    ZNLogP(TRACE, @"key=%@ dictionaryKey=%@ save=%d", key, dictionaryKey, save);
+    
+    @synchronized(self) {
+        NSDictionary* dictionary = [self __dictionaryPreferences:key];
+        NSMutableDictionary* mutableDictionary = [[NSMutableDictionary alloc] init];
+        
+        if (dictionary) {
+            [mutableDictionary addEntriesFromDictionary:dictionary];
+        }
         [prefs setObject:mutableDictionary forKey:key];
-        [dictionary autorelease];
-    } else {
-        mutableDictionary = dictionary;
+        
+        [mutableDictionary removeObjectForKey:dictionaryKey];
+    }
+    if (save) {
+        [self __save];
+    }
+}
+
++ (void)removePreferenceFromDictionary:(NSString*)key forDictionaryKey:(NSString*)dictionaryKey save:(BOOL)save {
+    [[Preferences sharedPreferences] __removePreferenceFromDictionary:key forDictionaryKey:dictionaryKey save:save];
+}
+
+- (void)__setPreferenceToDictionary:(NSString*)value forDictionaryKey:(NSString*)dictionaryKey forKey:(NSString*)key {
+    ZNLogP(TRACE, @"value=%@ key=%@ dictionaryKey=%@", value, key, dictionaryKey);
+    [self __setPreferenceToDictionary:value forDictionaryKey:dictionaryKey forKey:key save:YES];
+}
+
++ (void)setPreferenceToDictionary:(NSString*)value forDictionaryKey:(NSString*)dictionaryKey forKey:(NSString*)key {
+    [[Preferences sharedPreferences] __setPreferenceToDictionary:value forDictionaryKey:dictionaryKey forKey:key];
+}
+
+- (void)__setPreferenceToDictionary:(NSString*)value forDictionaryKey:(NSString*)dictionaryKey forKey:(NSString*)key save:(BOOL)save {
+    ZNLogP(TRACE, @"value=%@ key=%@ dictionaryKey=%@ save=%d", value, key, dictionaryKey, save);
+    
+    @synchronized(self) {
+        NSDictionary* dictionary = [self __dictionaryPreferences:key];
+        NSMutableDictionary* mutableDictionary = [[NSMutableDictionary alloc] init];
+        
+        if (dictionary) {
+            [mutableDictionary addEntriesFromDictionary:dictionary];
+        }
+        [prefs setObject:mutableDictionary forKey:key];
+        
+        [mutableDictionary setObject:value forKey:dictionaryKey];
+    }
+    if (save) {
+        [self __save];
     }
     
-    [mutableDictionary setObject:value forKey:dictionaryKey];
-    if (save) {
-        [self save];
-    }
+}
+
++ (void)setPreferenceToDictionary:(NSString*)value forDictionaryKey:(NSString*)dictionaryKey forKey:(NSString*)key save:(BOOL)save {
+    [[Preferences sharedPreferences] __setPreferenceToDictionary:value forDictionaryKey:dictionaryKey forKey:key save:save];
+}
+
++ (NSString*)mediaDirectory {
+    ZNLog(TRACE);
+    return [Preferences preference:TBS_MediaDirectory];
+}
+
++ (NSString*)tvShowDirectory {
+    ZNLog(TRACE);
+    return [Preferences preference:TBS_TvShowDirectory];
+}
+
++ (void)setTvShowDirectory:(NSString*)newPath {
+    ZNLogP(TRACE, @"newPath=%@", newPath);
+    [Preferences setPreference:newPath forKey:TBS_TvShowDirectory];
+}
+
++ (NSArray*)episodeExpressions {
+    ZNLog(TRACE);
+    return [Preferences arrayPreference:TBS_EpisodeExpressions];
+}
+
++ (NSArray*)releaseGroupExpressions {
+    ZNLog(TRACE);
+    return [Preferences arrayPreference:TBS_ReleaseGroupExpressions];
+}
+
++ (double)recentShowsRefreshInterval {
+    ZNLog(DEBUG);
+    return [Preferences preferenceAsDouble:TBS_RecentShowsRefreshInterval];
+}
+
++ (int)recentShowsModifiedTimeMin {
+    ZNLog(DEBUG);
+    return [Preferences preferenceAsInt:TBS_RecentShowsModifiedTimeMin];
+}
+
++ (int)recentShowsModifiedTimeMax {
+    ZNLog(DEBUG);
+    return [Preferences preferenceAsInt:TBS_RecentShowsModifiedTimeMax];
+}
+
++ (double)allowableIncomplete {
+    ZNLog(DEBUG);
+    return [Preferences preferenceAsDouble:TBS_AllowablePercentNullForDownload];
+}
+
++ (NSArray*)mediaExtensions {
+    ZNLog(TRACE);
+    return [Preferences arrayPreference:TSB_MediaExtensions];
+}
+
++ (int)logLevel {
+    ZNLog(DEBUG);
+    return [Preferences preferenceAsDouble:TBS_LogLevel];
 }
 
 @end

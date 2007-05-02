@@ -9,8 +9,11 @@
 #import "PathDictionary.h"
 #import <Foundation/NSURL.h>
 #import "Episode.h"
-#import "defaults.h"
 #import "ZNLog.h"
+#import <QTKit/QTMovie.h>
+#import <Foundation/NSURL.h>
+#import <AppKit/NSMovie.h>
+#import "Preferences.h"
 
 @implementation PathDictionary
 
@@ -23,7 +26,6 @@ static PathDictionary *sharedPathDictionary = nil;
     {
         pathDictionary = [[NSMutableDictionary alloc] init];
         showEpisodeCache = [[NSMutableDictionary alloc] init];
-        preferences = [Preferences sharedPreferences];
     }
 }
 
@@ -104,12 +106,12 @@ static PathDictionary *sharedPathDictionary = nil;
 
 - (NSDictionary*)episodeForFilename:(NSString*)filename {
     ZNLogP(TRACE, @"filename=%@", filename);
-    return [preferences dictionaryPreference:@"episodeNames" forDictionaryKey:filename];
+    return [Preferences dictionaryPreference:@"episodeNames" forDictionaryKey:filename];
 }
 
 - (void)setEpisode:(NSDictionary*)episode forFilename:(NSString*)filename {
     ZNLogP(TRACE, @"episode=%@ filename=%@", episode, filename);
-    [preferences setPreferenceToDictionary:episode forDictionaryKey:filename forKey:@"episodeNames"];
+    [Preferences setPreferenceToDictionary:episode forDictionaryKey:filename forKey:@"episodeNames"];
     //NSLog(@"Setting %@ = %@:\n%@", filename, episodeName, episodeNameDictionary);
 }
 
@@ -130,10 +132,10 @@ static PathDictionary *sharedPathDictionary = nil;
 
 - (void)initEpisodeNames {
     ZNLog(TRACE);
-    ZNLogP(DEBUG, @"tvShowPath=%@", [self tvShowPath]);
+    ZNLogP(DEBUG, @"tvShowPath=%@", [Preferences tvShowDirectory]);
     NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
     
-    NSArray* args = [NSArray arrayWithObjects:[self tvShowPath], @"-name", @"*.avi", @"-o", @"-name", @"*.mpg", @"-o", @"-name", @"*.mpeg", nil];
+    NSArray* args = [NSArray arrayWithObjects:[Preferences tvShowDirectory], @"-name", @"*.avi", @"-o", @"-name", @"*.mpg", @"-o", @"-name", @"*.mpeg", nil];
     //NSArray* args = [NSArray arrayWithObjects:tvShowPath, @"-type", @"f", @"-mmin", @"+5", @"-mtime", @"-3", nil];
     int size;
     NSMutableString* result = [[NSMutableString alloc] init];
@@ -224,18 +226,8 @@ static PathDictionary *sharedPathDictionary = nil;
 
 - (BOOL)isTvShowPath:(NSString*)path {
     ZNLogP(TRACE, @"path=%@", path);
-    int loc = [path rangeOfString:[self tvShowPath]].location;
+    int loc = [path rangeOfString:[Preferences tvShowDirectory]].location;
     return loc != NSNotFound;
-}
-
-- (NSString*)tvShowPath {
-    ZNLog(TRACE);
-    return [preferences preference:TBS_TvShowDirectory];
-}
-
-- (void)setTvShowPath:(NSString*)newPath {
-    ZNLogP(TRACE, @"newPath=%@", newPath);
-    [preferences setPreference:newPath forKey:TBS_TvShowDirectory];
 }
 
 + (NSString*)buildCaseInsensitiveExpression:(NSString*)s {
@@ -309,7 +301,7 @@ static PathDictionary *sharedPathDictionary = nil;
     NSMutableString* junk = [[NSMutableString alloc] init];
     [junk setString:filename];
     
-    NSArray* exps = [self releaseGroupExpressions];
+    NSArray* exps = [Preferences releaseGroupExpressions];
     
     for (i=0; i<[exps count]; i++) {
         //NSLog(@"expression: %@", [expressions objectAtIndex:i]);
@@ -334,18 +326,9 @@ static PathDictionary *sharedPathDictionary = nil;
     return [junk stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
 }
 
-- (NSArray*)episodeExpressions {
-    ZNLog(TRACE);
-    return [preferences arrayPreference:TBS_EpisodeExpressions];
-}
-
-- (NSArray*)releaseGroupExpressions {
-    ZNLog(TRACE);
-    return [preferences arrayPreference:TBS_ReleaseGroupExpressions];
-}
-
 - (Episode*) parseEpisode:(NSString*)path {
-    ZNLogP(TRACE, @"path=%@", path);
+    ZNLogP(DEBUG, @"path=%@", path);
+    
     NSString* fileName = [path lastPathComponent];
     NSDictionary* episode = [self episodeForFilename:fileName];
     if (episode) {
@@ -354,7 +337,7 @@ static PathDictionary *sharedPathDictionary = nil;
     
     NSString* showName;
     if ([self isTvShowPath:path]) {
-        int numShowDirectoryComponents = [[[self tvShowPath] pathComponents] count];
+        int numShowDirectoryComponents = [[[Preferences tvShowDirectory] pathComponents] count];
         NSArray* components = [path pathComponents];
         
         if ([components count] > numShowDirectoryComponents) {
@@ -364,7 +347,7 @@ static PathDictionary *sharedPathDictionary = nil;
     
     int seasonNumber = -1;
     NSString* episodeName = nil;
-    NSArray* exps = [self episodeExpressions];
+    NSArray* exps = [Preferences episodeExpressions];
     //NSString* fileName = [NSString stringWithString:name];
     
     NSString* trimmedFilename = [self trimFilename:fileName];

@@ -47,4 +47,8 @@
     return [properties objectForKey:@"showName"];
 }
 
+- (NSString*)filePath {
+    return [properties objectForKey:@"filePath"];
+}
+
 @end
