@@ -138,10 +138,16 @@
     return nextEpisode;
 }
 
+- (void)dealloc {
+    [directoryContentsCache release];
+    [lastShow release];
+    [nextShow release];
+}
+
 - (void)awakeFromNib {
     ZNLog(TRACE);
         
-    directoryContentsDictionary = [[NSMutableDictionary alloc] init];
+    directoryContentsCache = [[NSMutableDictionary alloc] init];
     lastShow = [[NSMutableArray alloc] init];
     nextShow = [[NSMutableArray alloc] init];
     
@@ -244,7 +250,7 @@
 }
 
 - (BOOL)cleanUpPathDictionary:(NSString*)key {
-    ZNLogP(TRACE, "key=%@", key);
+    //ZNLogP(TRACE, "key=%@", key);
     BOOL modified = NO;
     NSFileManager* fileManager = [NSFileManager defaultManager];
     NSDictionary* dict = [Preferences dictionaryPreferences:key];
@@ -268,7 +274,7 @@
 }
 
 - (BOOL)cleanUpPathArray:(NSString*)key {
-    ZNLogP(TRACE, "key=%@", key);
+    //ZNLogP(TRACE, "key=%@", key);
     NSFileManager* fileManager = [NSFileManager defaultManager];
     BOOL modified = NO;
     NSArray* array = [NSArray arrayWithArray:[Preferences arrayPreference:key]];
@@ -324,7 +330,7 @@
 
 // Use lazy initialization, since we don't want to touch the file system too much.
 - (int)browser:(NSBrowser *)sender numberOfRowsInColumn:(int)column {
-    ZNLogP(TRACE, @"sender=%@ column=%d", sender, column);
+    ZNLogP(ERROR, @"sender=%@ column=%d", sender, column);
     NSString   *fsNodePath = nil;
     FSNodeInfo *fsNodeInfo = nil;
     
@@ -334,7 +340,7 @@
     fsNodeInfo = [FSNodeInfo nodeWithParent: nil atRelativePath: [self absolutePath:fsNodePath]];
     
     NSArray* directoryContents = [fsNodeInfo visibleSubNodes];
-    //[directoryContentsDictionary setObject:directoryContents forKey:[fsNodeInfo absolutePath]];
+    [directoryContentsCache removeAllObjects];
     return [directoryContents count];
 }
 
@@ -348,14 +354,18 @@
     // Get the absolute path represented by the browser selection, and create a fsnode for the path.
     // Since (row,column) represents the cell being displayed, containingDirPath is the path to it's containing directory.
     containingDirPath = [self fsPathToColumn: column];
-    containingDirNode = [FSNodeInfo nodeWithParent: nil atRelativePath: [self absolutePath:containingDirPath]];
     
     // Ask the parent for a list of visible nodes so we can get at a FSNodeInfo for the cell being displayed.
     // Then give the FSNodeInfo to the cell so it can determine how to display itself.
-    //directoryContents = [directoryContentsDictionary objectForKey:[containingDirNode absolutePath]];
-    //if (!directoryContents) {
+    directoryContents = [directoryContentsCache objectForKey:containingDirPath];
+    if (!directoryContents) {
+        containingDirNode = [FSNodeInfo nodeWithParent: nil atRelativePath: [self absolutePath:containingDirPath]];
         directoryContents = [containingDirNode visibleSubNodes];
-    //}
+        [directoryContentsCache setObject:directoryContents forKey:containingDirPath];
+        ZNLogP(DEBUG, @"directoryContents(%@)=%@", containingDirPath, directoryContents);
+    } else {
+        ZNLogP(DEBUG, @"cached directoryContents(%@)=%@", containingDirPath, directoryContents);
+    }
     displayedCellNode = [directoryContents objectAtIndex: row];
     
     [cell setAttributedStringValueFromFSNodeInfo: displayedCellNode];
@@ -402,6 +412,24 @@
     [recentShows ignoreRecent:sender];
 }
 
+- (IBAction)play:(id)sender {
+    ZNLogP(TRACE, @"sender=%@", sender);
+    
+    NSWindow* window = [recentShowsTableView window];
+    NSResponder* firstResponder = [window firstResponder];
+    NSLog(@"firstResponder=%@", firstResponder);
+    
+    if (firstResponder == recentShowsTableView) {
+        [recentShows recentShowAction:sender];
+    } else if (firstResponder == lastShowTableView) {
+        [self lastShowAction:sender];
+    } else if (firstResponder == nextShowTableView) {
+        [self nextShowAction:sender];
+    } else {
+        [self browserDoubleClick:sender];
+    }
+}
+
 - (IBAction)browserDoubleClick:(id)sender {
     ZNLogP(TRACE, @"sender=%@", sender);
     // Open the file and display it information by calling the single click routine.
@@ -428,6 +456,10 @@
     [Preferences save];
 }
 
+- (NSBrowser*)browser {
+    return fsBrowser;
+}
+
 @end
 
 @implementation AppController (PrivateUtilities)
@@ -435,8 +467,8 @@
 - (NSString*)fsPathToColumn:(int)column {
     ZNLogP(TRACE, @"column=%d", column);
     NSString *path = nil;
-    if(column==0) path = [NSString stringWithFormat:[Preferences mediaDirectory]];
-    //if(column==0) path = [NSString stringWithFormat:@"/Users"];
+    NSString* mediaDirectory = [Preferences mediaDirectory];
+    if(column==0) path = [NSString stringWithFormat:mediaDirectory];
     else path = [fsBrowser pathToColumn: column];
     return path;
 }
@@ -488,9 +520,16 @@
     }
 }
 
-- (IBAction)nextShowAction:(id)tableView {
-    ZNLogP(TRACE, @"tableView=%@", tableView);
-    int episodeRow = [tableView clickedRow];
+- (IBAction)nextShowAction:(id)sender {
+    ZNLogP(TRACE, @"sender=%@", sender);
+    int episodeRow = -1;
+    
+    if ([sender isKindOfClass:[NSTableView class]]) {
+        episodeRow = [lastShowTableView clickedRow];
+    } else {
+        episodeRow = [lastShowTableView selectedRow];
+    }
+    
     if (episodeRow >= 0) {
         NSArray* array = [nextShowArrayController arrangedObjects];
         Episode* episode = [array objectAtIndex:episodeRow];
@@ -507,9 +546,15 @@
     }
 }
 
-- (IBAction)lastShowAction:(id)tableView {
-    ZNLogP(TRACE, @"tableView=%@", tableView);
-    int episodeRow = [tableView clickedRow];
+- (IBAction)lastShowAction:(id)sender {
+    ZNLogP(TRACE, @"sender=%@", sender);
+    int episodeRow = -1;
+    
+    if ([sender isKindOfClass:[NSTableView class]]) {
+        episodeRow = [lastShowTableView clickedRow];
+    } else {
+        episodeRow = [lastShowTableView selectedRow];
+    }
     if (episodeRow >= 0) {
         NSArray* array = [lastShowArrayController arrangedObjects];
         Episode* episode = [array objectAtIndex:episodeRow];

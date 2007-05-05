@@ -11,19 +11,8 @@
 
 @implementation ZNLog
 
-static BOOL initializing = NO;
-static logLevel = -1;
-
 + (int)logLevel {
-    if (initializing) return -1;
-    if (logLevel >= 0) return logLevel;
-    
-    initializing = YES;
-    
-    logLevel = [Preferences preferenceAsDouble:@"logLevel"];
-        
-    initializing = NO;
-    return logLevel;
+    return [Preferences logLevel];
 }
 
 + (void)file:(char*)sourceFile level:(int)level function:(char*)functionName lineNumber:(int)lineNumber format:(NSString*)format, ...

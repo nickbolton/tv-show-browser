@@ -112,7 +112,8 @@
 - (void)updateLastChoice:(NSString*)path save:(BOOL)save {
     NSString *parent = [path stringByDeletingLastPathComponent];
     
-    while ( [parent compare:[Preferences mediaDirectory]] ) {
+    NSString* mediaDirectoryParent = [[Preferences mediaDirectory] stringByDeletingLastPathComponent];
+    while ( [parent compare:mediaDirectoryParent] ) {
         [Preferences setPreferenceToDictionary:path forDictionaryKey:parent forKey:@"lastChoiceDictionary" save:NO];
         parent = [parent stringByDeletingLastPathComponent];
     }
@@ -140,9 +141,16 @@
     }
 }
 
-- (IBAction)recentShowAction:(id)tableView {
-    ZNLogP(DEBUG, @"tableView=%@", tableView);
-    int episodeRow = [tableView clickedRow];
+- (IBAction)recentShowAction:(id)sender {
+    ZNLogP(DEBUG, @"sender=%@", sender);
+    int episodeRow = -1;
+    
+    if ([sender isKindOfClass:[NSTableView class]]) {
+        episodeRow = [recentShowsTableView clickedRow];
+    } else {
+        episodeRow = [recentShowsTableView selectedRow];
+    }
+    
     if (episodeRow >= 0) {
         NSArray* array = [recentShowsArrayController arrangedObjects];
         Episode* episode = [array objectAtIndex:episodeRow];
@@ -153,8 +161,12 @@
         [self setEpisodeIgnored:filePath save:NO];
         
         [self updateLastChoice:filePath save:NO];
-        [Preferences save];
         [appController refreshLastAndNextShows:filePath];
+        
+        NSString* browserPath = [filePath substringFromIndex:[[Preferences mediaDirectory] length]];
+        [[appController browser] setPath:browserPath];
+        
+        [Preferences save];
     }
 }
 
@@ -271,7 +283,7 @@
         }
         
         double percentIncomplete = (double)zeroByteCount/(double)[data length];
-        double allowableIncomplete = [Preferences allowableIncomplete];
+        double allowableIncomplete = [Preferences allowableIncomplete]/100.0;
         if (percentIncomplete < allowableIncomplete) {
             [Preferences addPreferenceToArray:filePath forKey:@"completedDownloads" save:NO];
             if (modified) *modified = YES;

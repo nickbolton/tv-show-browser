@@ -23,6 +23,7 @@
 		9223F46C0BE0F22400DAEA77 /* defaults.h in Headers */ = {isa = PBXBuildFile; fileRef = 9223F46B0BE0F22400DAEA77 /* defaults.h */; };
 		9258BE2C0BE8034A0038FFA8 /* RecentShows.h in Headers */ = {isa = PBXBuildFile; fileRef = 9258BE2A0BE8034A0038FFA8 /* RecentShows.h */; };
 		9258BE2D0BE8034A0038FFA8 /* RecentShows.m in Sources */ = {isa = PBXBuildFile; fileRef = 9258BE2B0BE8034A0038FFA8 /* RecentShows.m */; };
+		927B74DC0BEC024C00857764 /* tp.icns in Resources */ = {isa = PBXBuildFile; fileRef = 927B74DB0BEC024C00857764 /* tp.icns */; };
 		929DB9A40BDAE76700D6A80A /* CSRegex.h in Headers */ = {isa = PBXBuildFile; fileRef = 929DB9A20BDAE76700D6A80A /* CSRegex.h */; };
 		929DB9A50BDAE76700D6A80A /* CSRegex.m in Sources */ = {isa = PBXBuildFile; fileRef = 929DB9A30BDAE76700D6A80A /* CSRegex.m */; };
 		92B7800F0BE5511E0026BA37 /* ZNLog.h in Headers */ = {isa = PBXBuildFile; fileRef = 92B7800E0BE5511E0026BA37 /* ZNLog.h */; };
@@ -71,11 +72,11 @@
 		29B97324FDCFA39411CA2CEA /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = /System/Library/Frameworks/AppKit.framework; sourceTree = "<absolute>"; };
 		29B97325FDCFA39411CA2CEA /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = /System/Library/Frameworks/Foundation.framework; sourceTree = "<absolute>"; };
 		73E7C57E049A8AE500C919A3 /* Prefix.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = Prefix.h; sourceTree = "<group>"; };
-		73E7C594049A8AF000C919A3 /* Info-SimpleBrowser.plist */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = "Info-SimpleBrowser.plist"; sourceTree = "<group>"; };
-		73E7C595049A8AF000C919A3 /* SimpleBrowser.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SimpleBrowser.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		73E7C594049A8AF000C919A3 /* Info-TvShowBrowser.plist */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = "Info-TvShowBrowser.plist"; sourceTree = "<group>"; };
 		9223F46B0BE0F22400DAEA77 /* defaults.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = defaults.h; sourceTree = "<group>"; };
 		9258BE2A0BE8034A0038FFA8 /* RecentShows.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RecentShows.h; sourceTree = "<group>"; };
 		9258BE2B0BE8034A0038FFA8 /* RecentShows.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = RecentShows.m; sourceTree = "<group>"; };
+		927B74DB0BEC024C00857764 /* tp.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = tp.icns; sourceTree = "<group>"; };
 		929DB9A20BDAE76700D6A80A /* CSRegex.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CSRegex.h; sourceTree = "<group>"; };
 		929DB9A30BDAE76700D6A80A /* CSRegex.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = CSRegex.m; sourceTree = "<group>"; };
 		92B7800E0BE5511E0026BA37 /* ZNLog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ZNLog.h; sourceTree = "<group>"; };
@@ -92,6 +93,7 @@
 		92BFF5700BDB029A00B36214 /* PathDictionary.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PathDictionary.m; sourceTree = "<group>"; };
 		92BFF86B0BDFD46800B36214 /* Episode.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = Episode.h; sourceTree = "<group>"; };
 		92BFF86C0BDFD46800B36214 /* Episode.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; path = Episode.m; sourceTree = "<group>"; };
+		92D123D00BE985300085D987 /* TvShowBrowser.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = TvShowBrowser.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		92F0D6110BE29D2D0071C3C7 /* Preferences.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Preferences.h; sourceTree = "<group>"; };
 		92F0D6120BE29D2D0071C3C7 /* Preferences.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Preferences.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -111,8 +113,7 @@
 		0317AF0D005DBB1811CA0E35 /* Images */ = {
 			isa = PBXGroup;
 			children = (
-				929DB9A20BDAE76700D6A80A /* CSRegex.h */,
-				929DB9A30BDAE76700D6A80A /* CSRegex.m */,
+				927B74DB0BEC024C00857764 /* tp.icns */,
 				05E14BCC005DC12D11CA0E35 /* FSIconImage-Default.tiff */,
 				05E14BCF005DC12D11CA0E35 /* FSIconImage-LinkArrow.icns */,
 			);
@@ -122,6 +123,22 @@
 		080E96DDFE201D6D7F000001 /* Classes */ = {
 			isa = PBXGroup;
 			children = (
+				92B780120BE553300026BA37 /* ZNLog.m */,
+				929DB9A20BDAE76700D6A80A /* CSRegex.h */,
+				929DB9A30BDAE76700D6A80A /* CSRegex.m */,
+				92BFF56F0BDB029A00B36214 /* PathDictionary.h */,
+				92BFF5700BDB029A00B36214 /* PathDictionary.m */,
+				92B7800E0BE5511E0026BA37 /* ZNLog.h */,
+				9258BE2A0BE8034A0038FFA8 /* RecentShows.h */,
+				9258BE2B0BE8034A0038FFA8 /* RecentShows.m */,
+				92B7880D0BE844E70026BA37 /* UKFileWatcher.h */,
+				92B7880E0BE844E70026BA37 /* UKFileWatcher.m */,
+				92B7880F0BE844E70026BA37 /* UKFNSubscribeFileWatcher.h */,
+				92B788100BE844E70026BA37 /* UKFNSubscribeFileWatcher.m */,
+				92B788110BE844E70026BA37 /* UKKQueue.h */,
+				92B788120BE844E70026BA37 /* UKKQueue.m */,
+				92B788130BE844E70026BA37 /* UKMainThreadProxy.h */,
+				92B788140BE844E70026BA37 /* UKMainThreadProxy.m */,
 				033B2046FF65C1FE11CA0E35 /* AppController.h */,
 				033B2047FF65C1FE11CA0E35 /* AppController.m */,
 				01B64036FF68029E11CA0E35 /* FSBrowserCell.h */,
@@ -154,7 +171,7 @@
 		19C28FACFE9D520D11CA2CBB /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				73E7C595049A8AF000C919A3 /* SimpleBrowser.app */,
+				92D123D00BE985300085D987 /* TvShowBrowser.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -162,7 +179,6 @@
 		29B97314FDCFA39411CA2CEA /* BrowserTester */ = {
 			isa = PBXGroup;
 			children = (
-				92B780120BE553300026BA37 /* ZNLog.m */,
 				9223F46B0BE0F22400DAEA77 /* defaults.h */,
 				0317AF0E005DBC2811CA0E35 /* ReadMe.rtf */,
 				080E96DDFE201D6D7F000001 /* Classes */,
@@ -171,20 +187,7 @@
 				29B97323FDCFA39411CA2CEA /* Frameworks */,
 				19C28FACFE9D520D11CA2CBB /* Products */,
 				73E7C57E049A8AE500C919A3 /* Prefix.h */,
-				73E7C594049A8AF000C919A3 /* Info-SimpleBrowser.plist */,
-				92BFF56F0BDB029A00B36214 /* PathDictionary.h */,
-				92BFF5700BDB029A00B36214 /* PathDictionary.m */,
-				92B7800E0BE5511E0026BA37 /* ZNLog.h */,
-				9258BE2A0BE8034A0038FFA8 /* RecentShows.h */,
-				9258BE2B0BE8034A0038FFA8 /* RecentShows.m */,
-				92B7880D0BE844E70026BA37 /* UKFileWatcher.h */,
-				92B7880E0BE844E70026BA37 /* UKFileWatcher.m */,
-				92B7880F0BE844E70026BA37 /* UKFNSubscribeFileWatcher.h */,
-				92B788100BE844E70026BA37 /* UKFNSubscribeFileWatcher.m */,
-				92B788110BE844E70026BA37 /* UKKQueue.h */,
-				92B788120BE844E70026BA37 /* UKKQueue.m */,
-				92B788130BE844E70026BA37 /* UKMainThreadProxy.h */,
-				92B788140BE844E70026BA37 /* UKMainThreadProxy.m */,
+				73E7C594049A8AF000C919A3 /* Info-TvShowBrowser.plist */,
 			);
 			name = BrowserTester;
 			sourceTree = "<group>";
@@ -246,9 +249,9 @@
 /* End PBXHeadersBuildPhase section */
 
 /* Begin PBXNativeTarget section */
-		73E7C580049A8AF000C919A3 /* SimpleBrowser */ = {
+		73E7C580049A8AF000C919A3 /* TvShowBrowser */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = B69BDEB908A2ECB3008AC9B5 /* Build configuration list for PBXNativeTarget "SimpleBrowser" */;
+			buildConfigurationList = B69BDEB908A2ECB3008AC9B5 /* Build configuration list for PBXNativeTarget "TvShowBrowser" */;
 			buildPhases = (
 				73E7C581049A8AF000C919A3 /* Headers */,
 				73E7C586049A8AF000C919A3 /* Resources */,
@@ -261,10 +264,10 @@
 			);
 			dependencies = (
 			);
-			name = SimpleBrowser;
+			name = TvShowBrowser;
 			productInstallPath = "$(LOCAL_DEVELOPER_DIR)/Demos";
 			productName = BrowserTester;
-			productReference = 73E7C595049A8AF000C919A3 /* SimpleBrowser.app */;
+			productReference = 92D123D00BE985300085D987 /* TvShowBrowser.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -277,7 +280,7 @@
 			mainGroup = 29B97314FDCFA39411CA2CEA /* BrowserTester */;
 			projectDirPath = "";
 			targets = (
-				73E7C580049A8AF000C919A3 /* SimpleBrowser */,
+				73E7C580049A8AF000C919A3 /* TvShowBrowser */,
 			);
 		};
 /* End PBXProject section */
@@ -291,6 +294,7 @@
 				73E7C588049A8AF000C919A3 /* InfoPlist.strings in Resources */,
 				73E7C589049A8AF000C919A3 /* FSIconImage-Default.tiff in Resources */,
 				73E7C58A049A8AF000C919A3 /* FSIconImage-LinkArrow.icns in Resources */,
+				927B74DC0BEC024C00857764 /* tp.icns in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -364,17 +368,17 @@
 				GCC_WARN_FOUR_CHARACTER_CONSTANTS = NO;
 				GCC_WARN_UNKNOWN_PRAGMAS = NO;
 				HEADER_SEARCH_PATHS = "";
-				INFOPLIST_FILE = "Info-SimpleBrowser.plist";
+				INFOPLIST_FILE = "Info-TvShowBrowser.plist";
 				INSTALL_PATH = "$(LOCAL_DEVELOPER_DIR)/Demos";
 				LIBRARY_SEARCH_PATHS = "";
 				OPTIMIZATION_CFLAGS = "-O0";
 				OTHER_CFLAGS = "";
 				OTHER_LDFLAGS = "";
-				PRODUCT_NAME = SimpleBrowser;
+				PRODUCT_NAME = TvShowBrowser;
 				SECTORDER_FLAGS = "";
 				WARNING_CFLAGS = "-Wmost";
 				WRAPPER_EXTENSION = app;
-				ZERO_LINK = YES;
+				ZERO_LINK = NO;
 			};
 			name = Development;
 		};
@@ -389,12 +393,12 @@
 				GCC_WARN_FOUR_CHARACTER_CONSTANTS = NO;
 				GCC_WARN_UNKNOWN_PRAGMAS = NO;
 				HEADER_SEARCH_PATHS = "";
-				INFOPLIST_FILE = "Info-SimpleBrowser.plist";
+				INFOPLIST_FILE = "Info-TvShowBrowser.plist";
 				INSTALL_PATH = "$(LOCAL_DEVELOPER_DIR)/Demos";
 				LIBRARY_SEARCH_PATHS = "";
 				OTHER_CFLAGS = "";
 				OTHER_LDFLAGS = "";
-				PRODUCT_NAME = SimpleBrowser;
+				PRODUCT_NAME = TvShowBrowser;
 				SECTORDER_FLAGS = "";
 				WARNING_CFLAGS = "-Wmost";
 				WRAPPER_EXTENSION = app;
@@ -411,12 +415,12 @@
 				GCC_WARN_FOUR_CHARACTER_CONSTANTS = NO;
 				GCC_WARN_UNKNOWN_PRAGMAS = NO;
 				HEADER_SEARCH_PATHS = "";
-				INFOPLIST_FILE = "Info-SimpleBrowser.plist";
+				INFOPLIST_FILE = "Info-TvShowBrowser.plist";
 				INSTALL_PATH = "$(LOCAL_DEVELOPER_DIR)/Demos";
 				LIBRARY_SEARCH_PATHS = "";
 				OTHER_CFLAGS = "";
 				OTHER_LDFLAGS = "";
-				PRODUCT_NAME = SimpleBrowser;
+				PRODUCT_NAME = TvShowBrowser;
 				SECTORDER_FLAGS = "";
 				WARNING_CFLAGS = "-Wmost";
 				WRAPPER_EXTENSION = app;
@@ -458,7 +462,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		B69BDEB908A2ECB3008AC9B5 /* Build configuration list for PBXNativeTarget "SimpleBrowser" */ = {
+		B69BDEB908A2ECB3008AC9B5 /* Build configuration list for PBXNativeTarget "TvShowBrowser" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				B69BDEBA08A2ECB3008AC9B5 /* Development */,

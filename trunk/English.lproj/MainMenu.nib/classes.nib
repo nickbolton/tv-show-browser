@@ -5,6 +5,7 @@
                 browserDoubleClick = id; 
                 browserSingleClick = id; 
                 ignoreRecent = id; 
+                play = id; 
                 recentShowAction = id; 
                 reloadData = id; 
             }; 
