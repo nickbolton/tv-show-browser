@@ -23,6 +23,7 @@
     NSMutableDictionary* directoryContentsDictionary;
     NSMutableArray* lastShow;
     NSMutableArray* nextShow;
+    NSMutableDictionary* directoryContentsCache;
     
     FSNodeInfo* parent;
     //NSTimer* recentShowsTimer;
@@ -32,6 +33,7 @@
 - (IBAction)reloadData:(id)sender;
 
 // Methods sent by the browser to us from theBrowser.
+- (IBAction)play:(id)sender;
 - (IBAction)browserSingleClick:(id)sender;
 - (IBAction)browserDoubleClick:(id)sender;
 - (IBAction)recentShowAction:(id)sender;
@@ -42,5 +44,5 @@
 - (void)setLastShow:(NSMutableArray*)newArray;
 - (NSMutableArray*)nextShow;
 - (void)setNextShow:(NSMutableArray*)newArray;
-
+- (NSBrowser*)browser;
 @end

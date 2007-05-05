@@ -92,6 +92,8 @@
     NSDate* maxModificationDate = [[NSDate date] addTimeInterval:maxInterval];
     NSFileManager* fileManager = [NSFileManager defaultManager];
     BOOL isDirectory = NO;
+    BOOL beforeMaxModificationDate = NO;
+    BOOL downloadComplete = NO;
     
     while ((subNodePath=[subNodePaths nextObject])) {
         FSNodeInfo *node = [FSNodeInfo nodeWithParent:self atRelativePath: subNodePath];
@@ -99,7 +101,9 @@
         NSDictionary *fileAttributes = [fileManager fileAttributesAtPath:filePath traverseLink:YES];
         NSDate *fileModDate = [fileAttributes objectForKey:NSFileModificationDate];
         [fileManager fileExistsAtPath:filePath isDirectory:&isDirectory];
-        if (isDirectory || (fileModDate && [maxModificationDate compare:fileModDate] == NSOrderedDescending) || [Preferences arrayContains:filePath forKey:@"completedDownloads"]) {
+        beforeMaxModificationDate = fileModDate ? [maxModificationDate compare:fileModDate] == NSOrderedDescending : NO;
+        downloadComplete = [Preferences arrayContains:filePath forKey:@"completedDownloads"];
+        if (isDirectory || beforeMaxModificationDate || downloadComplete) {
             [subNodes addObject: node];
         }
     }
@@ -192,7 +196,13 @@ int tvShowSorter(id n1, id n2, void *context) {
     ZNLog(TRACE);
     NSString *result = relativePath;
     if(parentNode!=nil) {
-        NSString *parentAbsPath = [parentNode absolutePath];
+        NSString *parentAbsPath;
+        if (![parentNode isKindOfClass:[FSNodeInfo class]]) {
+            parentAbsPath = [Preferences mediaDirectory];
+            NSLog(@"weeeeeeeee");
+        } else {
+            parentAbsPath = [parentNode absolutePath];
+        }
         if ([parentAbsPath isEqualToString: @"/"]) parentAbsPath = @"";
         result = [NSString stringWithFormat: @"%@/%@", parentAbsPath, relativePath];
     }

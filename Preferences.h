@@ -46,7 +46,6 @@
 + (NSString*)mediaDirectory;
 + (NSString*)mediaExtensions;
 + (NSString*)tvShowDirectory;
-+ (void)setTvShowDirectory:(NSString*)newPath;
 + (NSArray*)episodeExpressions;
 + (NSArray*)releaseGroupExpressions;
 + (int)recentShowsModifiedTimeMin;
