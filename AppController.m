@@ -47,7 +47,6 @@
 #import "AppController.h"
 #import "FSNodeInfo.h"
 #import "FSBrowserCell.h"
-#import "CSRegex.h"
 #import "PathDictionary.h"
 #import "Episode.h"
 #import "Preferences.h"
@@ -75,47 +74,60 @@
     BOOL isDirectory = NO;
     [[NSFileManager defaultManager] fileExistsAtPath:(NSString *)path isDirectory:&isDirectory];
     NSString* lastWatchedPath = nil;
+    PathDictionary* pathDictionary = [PathDictionary sharedPathDictionary];
     
     if (isDirectory) {
         NSString* lastChoice = [Preferences dictionaryPreference:@"lastChoiceDictionary" forDictionaryKey:path];
         if (lastChoice) {
-            lastWatchedEpisode = [[PathDictionary sharedPathDictionary] parseEpisode:lastChoice];
+            lastWatchedEpisode = [pathDictionary parseEpisode:lastChoice];
             lastWatchedPath = lastChoice;
         }
     } else {
-        lastWatchedEpisode = [[PathDictionary sharedPathDictionary] parseEpisode:path];
+        lastWatchedEpisode = [pathDictionary parseEpisode:path];
         lastWatchedPath = path;
     }
     
     if (lastWatchedEpisode) {
         [lastShowArrayController addObject:lastWatchedEpisode];
         
-        NSString* currentBrowserPath = [fsBrowser path];
-        NSString* nodePath = [lastWatchedPath substringFromIndex:[[Preferences mediaDirectory] length]];
-        ZNLogP(DEBUG, @"nodePath=%@", nodePath);
-        [fsBrowser setPath:nodePath];
+        [self setBrowserPath:lastWatchedEpisode];
         int column = [fsBrowser lastColumn];
         
         NSString* nextEpisodeName = [self fetchNextEpisode:lastWatchedEpisode inColumn:column];
         if (nextEpisodeName) {
             NSString* nextEpisodeNodePath = [NSString stringWithFormat:@"%@/%@", [lastWatchedPath stringByDeletingLastPathComponent], nextEpisodeName];
-            NSString *nextEpisodeRealPath = [[PathDictionary sharedPathDictionary] pathForKey:nextEpisodeNodePath];
+            NSString *nextEpisodeRealPath = [pathDictionary pathForKey:nextEpisodeNodePath];
             if (nextEpisodeRealPath) {
-                Episode* nextEpisode = [[PathDictionary sharedPathDictionary] parseEpisode:nextEpisodeRealPath];
+                Episode* nextEpisode = [pathDictionary parseEpisode:nextEpisodeRealPath];
                 if (nextEpisode) {
                     [nextShowArrayController addObject:nextEpisode];
                 }
             }
         }
-        [fsBrowser setPath:currentBrowserPath];
     }
+}
+
+- (void)setBrowserPath:(Episode*)episode {
+    ZNLogP(TRACE, @"episode=%@", [episode properties]);
+    NSString* browserPath = [self browserPathForEpisode:episode];
+    [fsBrowser setPath:browserPath];
+}
+
+- (NSString*)browserPathForEpisode:(Episode*)episode {
+    ZNLogP(TRACE, @"episode=%@", [episode properties]);
+    NSString* episodePath = [episode filePath];
+    NSString* nodePath = [episodePath substringFromIndex:[[Preferences mediaDirectory] length]];
+    NSString* parent = [nodePath stringByDeletingLastPathComponent];
+    NSString* episodeDisplayName = [episode episodeDisplayName];
+    NSString* path = [parent stringByAppendingPathComponent:episodeDisplayName];
+    return path;
 }
 
 - (NSString*)fetchNextEpisode:(Episode*)lastEpisode inColumn:(int)column {
     
     NSString* nextEpisode = nil;
     
-    NSString* attributedLastShowName = [NSString stringWithFormat:@"%dx%d %@", [lastEpisode season], [lastEpisode episode], [lastEpisode episodeName]];
+    NSString* attributedLastShowName = [lastEpisode episodeDisplayName];
     
     NSMatrix* matrix = [fsBrowser matrixInColumn:column];
     if (matrix) {
@@ -160,6 +172,7 @@
     [fsBrowser setDoubleAction: @selector(browserDoubleClick:)];
     
     [recentShowsTableView setDoubleAction:@selector(recentShowAction:)];
+    [recentShowsTableView setAction:@selector(recentShowSelection:)];
     
     // Configure the number of visible columns (default max visible columns is 1).
     [fsBrowser setMaxVisibleColumns: MAX_VISIBLE_COLUMNS];
@@ -180,12 +193,17 @@
     [recentShowsTimer fire];
      */
 
+    [lastShowTableView setAction:@selector(lastShowSelection:)];
     [lastShowTableView setDoubleAction:@selector(lastShowAction:)];
+    [nextShowTableView setAction:@selector(nextShowSelection:)];
     [nextShowTableView setDoubleAction:@selector(nextShowAction:)];
     
     NSString* lastWatchedPath = [Preferences dictionaryPreference:@"lastChoiceDictionary" forDictionaryKey:[Preferences tvShowDirectory]];
     if (lastWatchedPath) {
-        NSString* nodePath = [[Preferences tvShowDirectory] substringFromIndex:[[Preferences mediaDirectory] length]];
+        NSString* tvShowDir = [Preferences tvShowDirectory];
+        NSString* mediaDir = [Preferences mediaDirectory];
+        int index = [mediaDir length];
+        NSString* nodePath = [tvShowDir substringFromIndex:index];
         
         [fsBrowser setPath:nodePath];
         [self refreshLastAndNextShows:lastWatchedPath];
@@ -324,13 +342,17 @@
     [recentShows recentShowAction:sender];
 }
 
+- (IBAction)recentShowSelection:(id)sender {
+    [recentShows recentShowSelection:sender]; 
+}
+
 // ==========================================================
 // Browser Delegate Methods.
 // ==========================================================
 
 // Use lazy initialization, since we don't want to touch the file system too much.
 - (int)browser:(NSBrowser *)sender numberOfRowsInColumn:(int)column {
-    ZNLogP(ERROR, @"sender=%@ column=%d", sender, column);
+    ZNLogP(TRACE, @"sender=%@ column=%d", sender, column);
     NSString   *fsNodePath = nil;
     FSNodeInfo *fsNodeInfo = nil;
     
@@ -412,6 +434,19 @@
     [recentShows ignoreRecent:sender];
 }
 
+- (void)playMovie:(NSString*)path {
+    NSString* appName = @"VLC";
+    NSString* activateScript = @"tell application \"VLC\"\nactivate\nend tell";
+
+    [[NSWorkspace sharedWorkspace] openFile:path withApplication:appName];
+    NSAppleScript* appleScript = [[NSAppleScript alloc] initWithSource:activateScript];
+    [appleScript executeAndReturnError:nil];
+}
+
+- (IBAction)refreshEpisodeNames:(id)sender {
+    [[PathDictionary sharedPathDictionary] initEpisodeNames];
+}
+
 - (IBAction)play:(id)sender {
     ZNLogP(TRACE, @"sender=%@", sender);
     
@@ -443,7 +478,7 @@
     
     [self browserSingleClick: sender];
     
-    [[NSWorkspace sharedWorkspace] openFile: realPath];
+    [self playMovie:realPath];
     
     [recentShows removeObject:[pathDictionary parseEpisode:realPath]];
     [self setEpisodeIgnored:realPath save:NO];
@@ -510,17 +545,64 @@
 
 - (void)updateLastChoice:(NSString*)path save:(BOOL)save {
     NSString *parent = [path stringByDeletingLastPathComponent];
+    NSString* mediaDirectory = [Preferences mediaDirectory];
     
-    while ( [parent compare:[Preferences mediaDirectory]] ) {
+    while ( [parent compare:mediaDirectory] ) {
         [Preferences setPreferenceToDictionary:path forDictionaryKey:parent forKey:@"lastChoiceDictionary" save:NO];
         parent = [parent stringByDeletingLastPathComponent];
+    }
+    if ([mediaDirectory compare:[Preferences tvShowDirectory]] == NSOrderedSame) {
+        [Preferences setPreferenceToDictionary:path forDictionaryKey:mediaDirectory forKey:@"lastChoiceDictionary" save:NO];
     }
     if (save) {
         [Preferences save];
     }
 }
 
+- (IBAction)nextShowSelection:(id)sender {
+    ZNLogP(TRACE, @"sender=%@", sender);
+    int episodeRow = -1;
+    
+    if ([sender isKindOfClass:[NSTableView class]]) {
+        episodeRow = [nextShowTableView clickedRow];
+    } else {
+        episodeRow = [nextShowTableView selectedRow];
+    }
+    
+    if (episodeRow >= 0) {
+        NSArray* array = [nextShowArrayController arrangedObjects];
+        Episode* episode = [array objectAtIndex:episodeRow];
+        [self setBrowserPath:episode];
+    }
+}
+
 - (IBAction)nextShowAction:(id)sender {
+    ZNLogP(TRACE, @"sender=%@", sender);
+    int episodeRow = -1;
+    
+    if ([sender isKindOfClass:[NSTableView class]]) {
+        episodeRow = [nextShowTableView clickedRow];
+    } else {
+        episodeRow = [nextShowTableView selectedRow];
+    }
+    
+    if (episodeRow >= 0) {
+        NSArray* array = [nextShowArrayController arrangedObjects];
+        Episode* episode = [array objectAtIndex:episodeRow];
+        NSString* filePath = [[episode properties] objectForKey:@"filePath"];
+        //NSLog(@"episode: %@ watched: %d", [episode filePath], [self isShowWatched:filePath]);
+        [self playMovie:filePath];
+        
+        [recentShows removeObject:episode];
+        [self setEpisodeIgnored:filePath save:NO];
+        
+        [self updateLastChoice:filePath save:NO];
+        [Preferences save];
+        [self refreshLastAndNextShows:filePath];
+    }
+}
+
+- (IBAction)lastShowSelection:(id)sender {
     ZNLogP(TRACE, @"sender=%@", sender);
     int episodeRow = -1;
     
@@ -531,18 +613,9 @@
     }
     
     if (episodeRow >= 0) {
-        NSArray* array = [nextShowArrayController arrangedObjects];
+        NSArray* array = [lastShowArrayController arrangedObjects];
         Episode* episode = [array objectAtIndex:episodeRow];
-        NSString* filePath = [[episode properties] objectForKey:@"filePath"];
-        //NSLog(@"episode: %@ watched: %d", [episode filePath], [self isShowWatched:filePath]);
-        [[NSWorkspace sharedWorkspace] openFile:filePath ];
-        
-        [recentShows removeObject:episode];
-        [self setEpisodeIgnored:filePath save:NO];
-        
-        [self updateLastChoice:filePath save:NO];
-        [Preferences save];
-        [self refreshLastAndNextShows:filePath];
+        [self setBrowserPath:episode];
     }
 }
 
@@ -555,14 +628,18 @@
     } else {
         episodeRow = [lastShowTableView selectedRow];
     }
+    
     if (episodeRow >= 0) {
         NSArray* array = [lastShowArrayController arrangedObjects];
         Episode* episode = [array objectAtIndex:episodeRow];
         NSString* filePath = [[episode properties] objectForKey:@"filePath"];
         //NSLog(@"episode: %@ watched: %d", [episode filePath], [self isShowWatched:filePath]);
-        [[NSWorkspace sharedWorkspace] openFile:filePath ];
+        [self playMovie:filePath];
         [recentShows removeObject:episode];
         [self setEpisodeIgnored:filePath save:NO];
+        [self updateLastChoice:filePath save:NO];
+        [Preferences save];
+        [self refreshLastAndNextShows:filePath];
     }
 }
 

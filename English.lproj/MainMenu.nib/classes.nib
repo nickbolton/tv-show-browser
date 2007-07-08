@@ -7,6 +7,7 @@
                 ignoreRecent = id; 
                 play = id; 
                 recentShowAction = id; 
+                refreshEpisodeNames = id; 
                 reloadData = id; 
             }; 
             CLASS = AppController; 
@@ -18,6 +19,7 @@
                 nextShowArrayController = NSArrayController; 
                 nextShowTableView = NSTableView; 
                 recentShows = RecentShows; 
+                recentShowsArrayController = NSArrayController; 
                 recentShowsTableView = NSTableView; 
             }; 
             SUPERCLASS = NSObject; 
@@ -29,17 +31,28 @@
             SUPERCLASS = NSObject; 
         }, 
         {
+            ACTIONS = {unignoreEpisode = id; }; 
+            CLASS = IgnoredEpisodesController; 
+            LANGUAGE = ObjC; 
+            OUTLETS = {
+                appController = AppController; 
+                ignoredEpisodesArrayController = NSArrayController; 
+                ignoredEpisodesTableView = NSTableView; 
+            }; 
+            SUPERCLASS = NSObject; 
+        }, 
+        {
             CLASS = RecentShowController; 
             LANGUAGE = ObjC; 
             OUTLETS = {arrayController = NSArrayController; tableView = NSTableView; }; 
             SUPERCLASS = NSObject; 
         }, 
         {
-            ACTIONS = {ignoreRecent = id; }; 
+            ACTIONS = {ignoreRecent = id; refreshRecentShows = id; }; 
             CLASS = RecentShows; 
             LANGUAGE = ObjC; 
             OUTLETS = {
-                appController = AppController; 
+                appController = id; 
                 recentShowsArrayController = NSArrayController; 
                 recentShowsTableView = NSTableView; 
             }; 

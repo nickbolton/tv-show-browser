@@ -1,7 +1,8 @@
 #import <Foundation/Foundation.h>
 #import <regex.h>
+#import "Episode.h"
 
-@interface CSRegex:NSObject
+@interface CSRegexEpisodeString:NSObject
 {
 	regex_t preg;
 }
@@ -13,8 +14,8 @@
 -(NSString *)matchedSubstringOfString:(NSString *)string;
 -(NSArray *)capturedSubstringsOfString:(NSString *)string;
 
-+(CSRegex *)regexWithPattern:(NSString *)pattern options:(int)options;
-+(CSRegex *)regexWithPattern:(NSString *)pattern;
++(CSRegexEpisodeString *)regexWithPattern:(NSString *)pattern options:(int)options;
++(CSRegexEpisodeString *)regexWithPattern:(NSString *)pattern;
 
 +(NSString *)null;
 
@@ -22,7 +23,9 @@
 
 @end
 
-@interface NSString (CSRegex)
+@interface NSString (CSRegexEpisodeString)
+
+-(Episode*)episode;
 
 -(BOOL)matchedByPattern:(NSString *)pattern options:(int)options;
 -(BOOL)matchedByPattern:(NSString *)pattern;

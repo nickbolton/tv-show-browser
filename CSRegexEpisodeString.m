@@ -1,9 +1,10 @@
-#import "CSRegex.h"
+#import "CSRegexEpisodeString.h"
 #import "ZNLog.h"
+#import "PathDictionary.h"
 
 static NSString *nullstring=nil;
 
-@implementation CSRegex
+@implementation CSRegexEpisodeString
 
 -(id)initWithPattern:(NSString *)pattern options:(int)options
 {
@@ -82,16 +83,16 @@ static NSString *nullstring=nil;
 	return nil;
 }
 
-+(CSRegex *)regexWithPattern:(NSString *)pattern options:(int)options
++(CSRegexEpisodeString *)regexWithPattern:(NSString *)pattern options:(int)options
 { 
     ZNLogP(TRACE, @"pattern=%@ options=%d", pattern, options);
-    return [[[CSRegex alloc] initWithPattern:pattern options:options] autorelease];
+    return [[[CSRegexEpisodeString alloc] initWithPattern:pattern options:options] autorelease];
 }
 
-+(CSRegex *)regexWithPattern:(NSString *)pattern
++(CSRegexEpisodeString *)regexWithPattern:(NSString *)pattern
 {
     ZNLogP(TRACE, @"pattern=%@", pattern);
-    return [[[CSRegex alloc] initWithPattern:pattern options:0] autorelease];
+    return [[[CSRegexEpisodeString alloc] initWithPattern:pattern options:0] autorelease];
 }
 
 +(NSString *)null {
@@ -107,12 +108,16 @@ static NSString *nullstring=nil;
 
 @end
 
-@implementation NSString (CSRegex)
+@implementation NSString (CSRegexEpisodeString)
+
+-(Episode*)episode {
+    return [[PathDictionary sharedPathDictionary] parseEpisode:self];
+}
 
 -(BOOL)matchedByPattern:(NSString *)pattern options:(int)options
 {
     ZNLogP(TRACE, @"pattern=%@ options=%d", pattern, options);
-	CSRegex *re=[CSRegex regexWithPattern:pattern options:options|REG_NOSUB];
+	CSRegexEpisodeString *re=[CSRegexEpisodeString regexWithPattern:pattern options:options|REG_NOSUB];
 	return [re matchesString:self];
 }
 
@@ -125,7 +130,7 @@ static NSString *nullstring=nil;
 -(NSString *)substringMatchedByPattern:(NSString *)pattern options:(int)options
 {
     ZNLogP(TRACE, @"pattern=%@ options=%d", pattern, options);
-	CSRegex *re=[CSRegex regexWithPattern:pattern options:options];
+	CSRegexEpisodeString *re=[CSRegexEpisodeString regexWithPattern:pattern options:options];
 	return [re matchedSubstringOfString:self];
 }
 
@@ -138,7 +143,7 @@ static NSString *nullstring=nil;
 -(NSArray *)substringsCapturedByPattern:(NSString *)pattern options:(int)options
 {
     ZNLogP(TRACE, @"pattern=%@ options=%d", pattern, options);
-	CSRegex *re=[CSRegex regexWithPattern:pattern options:options];
+	CSRegexEpisodeString *re=[CSRegexEpisodeString regexWithPattern:pattern options:options];
 	return [re capturedSubstringsOfString:self];
 }
 

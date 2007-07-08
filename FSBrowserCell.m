@@ -42,7 +42,6 @@
  OTHERWISE, EVEN IF APPLE HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#import "CSRegex.h"
 #import "FSNodeInfo.h"
 #import "FSBrowserCell.h"
 #import "PathDictionary.h"
@@ -92,11 +91,8 @@
     } else {
         Episode* episode = [[PathDictionary sharedPathDictionary] parseEpisode:[node absolutePath]];
         //NSDictionary* properties = [episode properties];
-        NSMutableString* str = [[NSMutableString alloc] init];
-        [str setString:@""];
-        [str appendFormat:@"%dx%d %@", [episode season], [episode episode], [episode episodeName]];
         
-        stringValue = str;
+        stringValue = [episode episodeDisplayName];
         
         NSString* path = [node absolutePath];
         NSString* key = [[[node absolutePath] stringByDeletingLastPathComponent] stringByAppendingPathComponent:stringValue];

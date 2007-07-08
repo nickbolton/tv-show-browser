@@ -47,6 +47,7 @@
 + (NSString*)mediaExtensions;
 + (NSString*)tvShowDirectory;
 + (NSArray*)episodeExpressions;
++ (NSArray*)whitespaceExpressions;
 + (NSArray*)releaseGroupExpressions;
 + (int)recentShowsModifiedTimeMin;
 + (int)recentShowsModifiedTimeMax;

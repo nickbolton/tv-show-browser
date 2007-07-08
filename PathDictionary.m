@@ -279,13 +279,12 @@ static PathDictionary *sharedPathDictionary = nil;
     
     NSMutableString* name = [[NSMutableString alloc] init];
     [name appendString:episodeName];
-    [name replaceOccurrencesOfString:@"." withString:@" " options:0 range:NSMakeRange(0, [name length]) ];
-    [name replaceOccurrencesOfString:@"_" withString:@" " options:0 range:NSMakeRange(0, [name length]) ];
-    [name replaceOccurrencesOfString:@"-" withString:@" " options:0 range:NSMakeRange(0, [name length]) ];
-    [name replaceOccurrencesOfString:@"[" withString:@"" options:0 range:NSMakeRange(0, [name length]) ];
-    [name replaceOccurrencesOfString:@"]" withString:@"" options:0 range:NSMakeRange(0, [name length]) ];
-    [name replaceOccurrencesOfString:@"(" withString:@"" options:0 range:NSMakeRange(0, [name length]) ];
-    [name replaceOccurrencesOfString:@")" withString:@"" options:0 range:NSMakeRange(0, [name length]) ];
+    
+    exps = [Preferences whitespaceExpressions];
+    for (i=0; i<[exps count]; i++) {
+        [name replaceOccurrencesOfString:[exps objectAtIndex:i] withString:@" " options:0 range:NSMakeRange(0, [name length]) ];
+    }
+    
     while ([name rangeOfString:@"  "].location != NSNotFound){
         [name replaceOccurrencesOfString:@"  " withString:@" " options:0 range:NSMakeRange(0, [name length]) ];
     }
@@ -304,20 +303,16 @@ static PathDictionary *sharedPathDictionary = nil;
     NSArray* exps = [Preferences releaseGroupExpressions];
     
     for (i=0; i<[exps count]; i++) {
-        //NSLog(@"expression: %@", [expressions objectAtIndex:i]);
         NSString* substr = [junk substringMatchedByPattern:[exps objectAtIndex:i]];
         if (substr) {
             [junk replaceOccurrencesOfString:substr withString:@"" options:0 range:NSMakeRange(0, [junk length]) ];
         }
     }
     
-    [junk replaceOccurrencesOfString:@"." withString:@" " options:0 range:NSMakeRange(0, [junk length]) ];
-    [junk replaceOccurrencesOfString:@"_" withString:@" " options:0 range:NSMakeRange(0, [junk length]) ];
-    [junk replaceOccurrencesOfString:@"-" withString:@" " options:0 range:NSMakeRange(0, [junk length]) ];
-    [junk replaceOccurrencesOfString:@"[" withString:@"" options:0 range:NSMakeRange(0, [junk length]) ];
-    [junk replaceOccurrencesOfString:@"]" withString:@"" options:0 range:NSMakeRange(0, [junk length]) ];
-    [junk replaceOccurrencesOfString:@"(" withString:@"" options:0 range:NSMakeRange(0, [junk length]) ];
-    [junk replaceOccurrencesOfString:@")" withString:@"" options:0 range:NSMakeRange(0, [junk length]) ];
+    exps = [Preferences whitespaceExpressions];
+    for (i=0; i<[exps count]; i++) {
+        [junk replaceOccurrencesOfString:[exps objectAtIndex:i] withString:@"" options:0 range:NSMakeRange(0, [junk length]) ];
+    }
     
     while ([junk rangeOfString:@"  "].location != NSNotFound){
         [junk replaceOccurrencesOfString:@"  " withString:@" " options:0 range:NSMakeRange(0, [junk length]) ];
@@ -357,7 +352,8 @@ static PathDictionary *sharedPathDictionary = nil;
     int i;
     for (i=0; seasonNumber < 0 && i<[exps count]; i++) {
         
-        NSArray* matches = [trimmedFilename substringsCapturedByPattern:[exps objectAtIndex:i]];
+        NSString* exp = [exps objectAtIndex:i];
+        NSArray* matches = [trimmedFilename substringsCapturedByPattern:exp];
         if ([matches count] > 0) {
             seasonNumber = [[matches objectAtIndex:1] intValue];
             int episodeNumber = [[matches objectAtIndex:2] intValue];

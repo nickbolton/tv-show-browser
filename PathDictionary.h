@@ -23,6 +23,7 @@
 - (void)setEpisodeName:(NSString*)episodeName forFilename:(NSString*)filename;
 - (BOOL)isTvShowPath:(NSString*)path;
 - (Episode*) parseEpisode:(NSString*)path;
+- (NSString*)browserPathForEpisode:(Episode*)episode;
 
 - (NSString*)fetchEpisodeNameForShow:(NSString*)show;
 
