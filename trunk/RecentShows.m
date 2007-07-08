@@ -11,6 +11,7 @@
 #import "PathDictionary.h"
 //#import "UKKQueue.h"
 #import "Preferences.h"
+#import "Foundation/Foundation.h"
 
 
 @implementation RecentShows
@@ -141,8 +142,26 @@
     }
 }
 
+- (IBAction)recentShowSelection:(id)sender {
+    ZNLogP(TRACE, @"sender=%@", sender);
+    int episodeRow = -1;
+    
+    if ([sender isKindOfClass:[NSTableView class]]) {
+        episodeRow = [recentShowsTableView clickedRow];
+    } else {
+        episodeRow = [recentShowsTableView selectedRow];
+    }
+    
+    if (episodeRow >= 0) {
+        NSArray* array = [recentShowsArrayController arrangedObjects];
+        Episode* episode = [array objectAtIndex:episodeRow];
+        [appController setBrowserPath:episode];
+        [appController refreshLastAndNextShows:[[episode filePath] stringByDeletingLastPathComponent]];
+    }
+}
+
 - (IBAction)recentShowAction:(id)sender {
-    ZNLogP(DEBUG, @"sender=%@", sender);
+    ZNLogP(TRACE, @"sender=%@", sender);
     int episodeRow = -1;
     
     if ([sender isKindOfClass:[NSTableView class]]) {
@@ -183,88 +202,107 @@
 }
 
 - (void)updateRecentShows:(NSTimer*)theTimer {
-    ZNLogP(DEBUG, @"theTimer=%@", theTimer);
-    NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
-    
-    NSArray* mediaExtensions = [Preferences mediaExtensions];
-    int minInterval = [Preferences recentShowsModifiedTimeMin];
-    int maxInterval = [Preferences recentShowsModifiedTimeMax];
-    NSArray* timeArgs = [NSArray arrayWithObjects:[Preferences tvShowDirectory], @"-type", @"f", @"-mmin", [NSString stringWithFormat:@"+%d", minInterval], @"-mmin", [NSString stringWithFormat:@"-%d", maxInterval], nil];
-    NSMutableArray* args = [[NSMutableArray alloc] init];
-    [args addObjectsFromArray:timeArgs];
-    
-    [args addObject:@"("];
-    int i;
-    for (i=0; i<[mediaExtensions count]; i++) {
-        if (i>0) {
-            [args addObject:@"-o"];
-        }
-        [args addObject:@"-name"];
-        [args addObject:[[NSString stringWithString:@"*."] stringByAppendingString:[mediaExtensions objectAtIndex:i]]];
-    }
-    [args addObject:@")"];
-    
-    int size;
-    NSMutableString* result = [[NSMutableString alloc] init];
-    [result setString:@""];
-    NSPipe *newPipe = [NSPipe pipe];
-    NSFileHandle *readHandle = [newPipe fileHandleForReading];
-    NSData *inData = nil;
-    NSTask* task = [[NSTask alloc] init];
-    [task setStandardOutput:newPipe];
-    [task setLaunchPath:@"/usr/bin/find"];
-    [task setArguments:args];
-    //NSTask* task = [NSTask launchedTaskWithLaunchPath:@"/usr/bin/find" arguments:args];
-    
-    NSMutableString* argsStr = [[NSMutableString alloc] init];
-    [argsStr setString:@""];
-    
-    for (i=0; i<[args count]; i++) {
-        [argsStr appendString:[args objectAtIndex:i]];
-        [argsStr appendString:@" "];
-    }
-    
-    ZNLogP(DEBUG, @"args: %@", argsStr);
-    [task launch];
-    
-    while ((inData = [readHandle availableData]) && [inData length]) {
-        size = [inData length];
-        //NSLog(@"data size: %d", size);
-        char buf[size+1];
-        buf[size] = '\0';
-        [inData getBytes:buf];
-        [result appendFormat:@"%s", buf];
-    }
-    ZNLogP(DEBUG, @"%@", result);
-    
-    if ([recentShows count] > 0) {
-        [recentShowsArrayController removeObjects:recentShows];
-    }
-    NSArray* paths = [result componentsSeparatedByString:@"\n"];
-    
-    BOOL modified = NO;
+    @synchronized(self) {
+        ZNLogP(DEBUG, @"theTimer=%@", theTimer);
+        NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
         
-    for (i=0; i<[paths count]; i++) {
-        NSString* path = [paths objectAtIndex:i];
-        //NSLog(@"path: #%@#", path);
-        BOOL prefsModified = NO;
-        BOOL isIgnored = [self isEpisodeIgnored:path];
-        BOOL isComplete = [self isDownloadComplete:path forceCheck:YES modified:&prefsModified];
-        modified = modified || prefsModified;
-        if (path && [path compare:@""] && !isIgnored && isComplete) {
-            Episode* episode = [[PathDictionary sharedPathDictionary] parseEpisode:path];
-            if (episode) {
-                //NSLog(@"episode:\n%@", [episode properties]);
-                [recentShowsArrayController addObject:episode];
+        NSArray* mediaExtensions = [Preferences mediaExtensions];
+        int minInterval = [Preferences recentShowsModifiedTimeMin];
+        int maxInterval = [Preferences recentShowsModifiedTimeMax];
+        NSMutableString* filePath = [[NSMutableString alloc] initWithString:[Preferences tvShowDirectory]];
+        if ([filePath characterAtIndex:([filePath length] - 1)] != '/') {
+            [filePath appendString:@"/"];
+        }
+        NSArray* timeArgs = [NSArray arrayWithObjects:filePath, @"-type", @"f", @"-mmin", [NSString stringWithFormat:@"+%d", minInterval], @"-mmin", [NSString stringWithFormat:@"-%d", maxInterval], nil];
+        NSMutableArray* args = [[NSMutableArray alloc] init];
+        [args addObjectsFromArray:timeArgs];
+        
+        [args addObject:@"("];
+        int i;
+        for (i=0; i<[mediaExtensions count]; i++) {
+            if (i>0) {
+                [args addObject:@"-o"];
             }
+            [args addObject:@"-name"];
+            [args addObject:[[NSString stringWithString:@"*."] stringByAppendingString:[mediaExtensions objectAtIndex:i]]];
+        }
+        [args addObject:@")"];
+        
+        NSMutableString* argsStr = [[NSMutableString alloc] init];
+        [argsStr setString:@""];
+        
+        for (i=0; i<[args count]; i++) {
+            [argsStr appendString:[args objectAtIndex:i]];
+            [argsStr appendString:@" "];
         }
         
-    }
+        ZNLogP(DEBUG, @"args: %@", argsStr);
+        
+        NSLog(@"args: %@", argsStr);
+        
+        int size;
+        NSMutableString* result = [[NSMutableString alloc] init];
+        [result setString:@""];
+        NSPipe *newPipe = [NSPipe pipe];
+        NSFileHandle *readHandle = [newPipe fileHandleForReading];
+        NSData *inData = nil;
+        NSTask* task = [[NSTask alloc] init];
+        [task setStandardOutput:newPipe];
+        [task setLaunchPath:@"/usr/bin/find"];
+        [task setArguments:args];
+        //NSTask* task = [NSTask launchedTaskWithLaunchPath:@"/usr/bin/find" arguments:args];
     
-    if (modified) {
-        [Preferences save];
+        [task launch];
+        
+        while ((inData = [readHandle availableData]) && [inData length]) {
+            size = [inData length];
+            //NSLog(@"data size: %d", size);
+            char buf[size+1];
+            buf[size] = '\0';
+            [inData getBytes:buf];
+            [result appendFormat:@"%s", buf];
+        }
+        ZNLogP(DEBUG, @"%@", result);
+        
+        if ([recentShows count] > 0) {
+            [recentShowsArrayController removeObjects:recentShows];
+        }
+        NSArray* paths = [result componentsSeparatedByString:@"\n"];
+        
+        BOOL modified = NO;
+            
+        for (i=0; i<[paths count]; i++) {
+            NSMutableString* path = [[NSMutableString alloc] initWithString:[paths objectAtIndex:i]];
+            [path replaceOccurrencesOfString:@"//" withString:@"/" options:0 range:NSMakeRange(0, [path length])];
+            
+            ZNLogP(DEBUG, @"checking recent path: #%@#", path);
+    
+            BOOL prefsModified = NO;
+            
+            if (!path || ![path compare:@""]) continue;
+            BOOL isIgnored = [self isEpisodeIgnored:path];
+            ZNLogP(DEBUG, @"recent path ignored: %d", isIgnored);
+            if (isIgnored) continue;
+            
+            BOOL isComplete = [self isDownloadComplete:path forceCheck:YES modified:&prefsModified];
+            ZNLogP(DEBUG, @"recent path complete: %d", isComplete);
+            modified = modified || prefsModified;
+            if (isComplete) {
+                NSLog(@"path:\n%@", path);
+                Episode* episode = [[PathDictionary sharedPathDictionary] parseEpisode:path];
+                if (episode) {
+                    NSLog(@"episode:\n%@", [episode properties]);
+                    [recentShowsArrayController addObject:episode];
+                }
+            }
+            
+        }
+        
+        if (modified) {
+            [Preferences save];
+        }
+        [pool release];
     }
-    [pool release];
 }
 
 - (BOOL)isDownloadComplete:(NSString*)filePath forceCheck:(BOOL)forceCheck modified:(BOOL*)modified {
@@ -293,5 +331,8 @@
     return NO;
 }
 
+- (IBAction)refreshRecentShows:(id)sender {
+    [self updateRecentShows:nil];
+}
 
 @end

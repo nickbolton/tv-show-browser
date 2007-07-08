@@ -24,8 +24,8 @@
 		9258BE2C0BE8034A0038FFA8 /* RecentShows.h in Headers */ = {isa = PBXBuildFile; fileRef = 9258BE2A0BE8034A0038FFA8 /* RecentShows.h */; };
 		9258BE2D0BE8034A0038FFA8 /* RecentShows.m in Sources */ = {isa = PBXBuildFile; fileRef = 9258BE2B0BE8034A0038FFA8 /* RecentShows.m */; };
 		927B74DC0BEC024C00857764 /* tp.icns in Resources */ = {isa = PBXBuildFile; fileRef = 927B74DB0BEC024C00857764 /* tp.icns */; };
-		929DB9A40BDAE76700D6A80A /* CSRegex.h in Headers */ = {isa = PBXBuildFile; fileRef = 929DB9A20BDAE76700D6A80A /* CSRegex.h */; };
-		929DB9A50BDAE76700D6A80A /* CSRegex.m in Sources */ = {isa = PBXBuildFile; fileRef = 929DB9A30BDAE76700D6A80A /* CSRegex.m */; };
+		929DB9A40BDAE76700D6A80A /* CSRegexEpisodeString.h in Headers */ = {isa = PBXBuildFile; fileRef = 929DB9A20BDAE76700D6A80A /* CSRegexEpisodeString.h */; };
+		929DB9A50BDAE76700D6A80A /* CSRegexEpisodeString.m in Sources */ = {isa = PBXBuildFile; fileRef = 929DB9A30BDAE76700D6A80A /* CSRegexEpisodeString.m */; };
 		92B7800F0BE5511E0026BA37 /* ZNLog.h in Headers */ = {isa = PBXBuildFile; fileRef = 92B7800E0BE5511E0026BA37 /* ZNLog.h */; };
 		92B780130BE553300026BA37 /* ZNLog.m in Sources */ = {isa = PBXBuildFile; fileRef = 92B780120BE553300026BA37 /* ZNLog.m */; };
 		92B788150BE844E70026BA37 /* UKFileWatcher.h in Headers */ = {isa = PBXBuildFile; fileRef = 92B7880D0BE844E70026BA37 /* UKFileWatcher.h */; };
@@ -40,6 +40,8 @@
 		92BFF5720BDB029A00B36214 /* PathDictionary.m in Sources */ = {isa = PBXBuildFile; fileRef = 92BFF5700BDB029A00B36214 /* PathDictionary.m */; };
 		92BFF86D0BDFD46800B36214 /* Episode.h in Headers */ = {isa = PBXBuildFile; fileRef = 92BFF86B0BDFD46800B36214 /* Episode.h */; };
 		92BFF86E0BDFD46800B36214 /* Episode.m in Sources */ = {isa = PBXBuildFile; fileRef = 92BFF86C0BDFD46800B36214 /* Episode.m */; };
+		92EC40930BF1FF9700E2A975 /* IgnoredEpisodesController.h in Headers */ = {isa = PBXBuildFile; fileRef = 92EC40910BF1FF9700E2A975 /* IgnoredEpisodesController.h */; };
+		92EC40940BF1FF9700E2A975 /* IgnoredEpisodesController.m in Sources */ = {isa = PBXBuildFile; fileRef = 92EC40920BF1FF9700E2A975 /* IgnoredEpisodesController.m */; };
 		92F0D6130BE29D2D0071C3C7 /* Preferences.h in Headers */ = {isa = PBXBuildFile; fileRef = 92F0D6110BE29D2D0071C3C7 /* Preferences.h */; };
 		92F0D6140BE29D2D0071C3C7 /* Preferences.m in Sources */ = {isa = PBXBuildFile; fileRef = 92F0D6120BE29D2D0071C3C7 /* Preferences.m */; };
 /* End PBXBuildFile section */
@@ -77,8 +79,8 @@
 		9258BE2A0BE8034A0038FFA8 /* RecentShows.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RecentShows.h; sourceTree = "<group>"; };
 		9258BE2B0BE8034A0038FFA8 /* RecentShows.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = RecentShows.m; sourceTree = "<group>"; };
 		927B74DB0BEC024C00857764 /* tp.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = tp.icns; sourceTree = "<group>"; };
-		929DB9A20BDAE76700D6A80A /* CSRegex.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CSRegex.h; sourceTree = "<group>"; };
-		929DB9A30BDAE76700D6A80A /* CSRegex.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = CSRegex.m; sourceTree = "<group>"; };
+		929DB9A20BDAE76700D6A80A /* CSRegexEpisodeString.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CSRegexEpisodeString.h; sourceTree = "<group>"; };
+		929DB9A30BDAE76700D6A80A /* CSRegexEpisodeString.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = CSRegexEpisodeString.m; sourceTree = "<group>"; };
 		92B7800E0BE5511E0026BA37 /* ZNLog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ZNLog.h; sourceTree = "<group>"; };
 		92B780120BE553300026BA37 /* ZNLog.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ZNLog.m; sourceTree = "<group>"; };
 		92B7880D0BE844E70026BA37 /* UKFileWatcher.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = UKFileWatcher.h; sourceTree = "<group>"; };
@@ -94,6 +96,8 @@
 		92BFF86B0BDFD46800B36214 /* Episode.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = Episode.h; sourceTree = "<group>"; };
 		92BFF86C0BDFD46800B36214 /* Episode.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; path = Episode.m; sourceTree = "<group>"; };
 		92D123D00BE985300085D987 /* TvShowBrowser.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = TvShowBrowser.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		92EC40910BF1FF9700E2A975 /* IgnoredEpisodesController.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = IgnoredEpisodesController.h; sourceTree = "<group>"; };
+		92EC40920BF1FF9700E2A975 /* IgnoredEpisodesController.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; path = IgnoredEpisodesController.m; sourceTree = "<group>"; };
 		92F0D6110BE29D2D0071C3C7 /* Preferences.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Preferences.h; sourceTree = "<group>"; };
 		92F0D6120BE29D2D0071C3C7 /* Preferences.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Preferences.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -124,8 +128,8 @@
 			isa = PBXGroup;
 			children = (
 				92B780120BE553300026BA37 /* ZNLog.m */,
-				929DB9A20BDAE76700D6A80A /* CSRegex.h */,
-				929DB9A30BDAE76700D6A80A /* CSRegex.m */,
+				929DB9A20BDAE76700D6A80A /* CSRegexEpisodeString.h */,
+				929DB9A30BDAE76700D6A80A /* CSRegexEpisodeString.m */,
 				92BFF56F0BDB029A00B36214 /* PathDictionary.h */,
 				92BFF5700BDB029A00B36214 /* PathDictionary.m */,
 				92B7800E0BE5511E0026BA37 /* ZNLog.h */,
@@ -147,6 +151,8 @@
 				01B64033FF68026D11CA0E35 /* FSNodeInfo.m */,
 				92BFF86B0BDFD46800B36214 /* Episode.h */,
 				92BFF86C0BDFD46800B36214 /* Episode.m */,
+				92EC40910BF1FF9700E2A975 /* IgnoredEpisodesController.h */,
+				92EC40920BF1FF9700E2A975 /* IgnoredEpisodesController.m */,
 			);
 			name = Classes;
 			sourceTree = "<group>";
@@ -232,7 +238,7 @@
 				73E7C583049A8AF000C919A3 /* FSNodeInfo.h in Headers */,
 				73E7C584049A8AF000C919A3 /* FSBrowserCell.h in Headers */,
 				73E7C585049A8AF000C919A3 /* Prefix.h in Headers */,
-				929DB9A40BDAE76700D6A80A /* CSRegex.h in Headers */,
+				929DB9A40BDAE76700D6A80A /* CSRegexEpisodeString.h in Headers */,
 				92BFF5710BDB029A00B36214 /* PathDictionary.h in Headers */,
 				92BFF86D0BDFD46800B36214 /* Episode.h in Headers */,
 				9223F46C0BE0F22400DAEA77 /* defaults.h in Headers */,
@@ -243,6 +249,7 @@
 				92B788170BE844E70026BA37 /* UKFNSubscribeFileWatcher.h in Headers */,
 				92B788190BE844E70026BA37 /* UKKQueue.h in Headers */,
 				92B7881B0BE844E70026BA37 /* UKMainThreadProxy.h in Headers */,
+				92EC40930BF1FF9700E2A975 /* IgnoredEpisodesController.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -319,7 +326,7 @@
 				73E7C58D049A8AF000C919A3 /* AppController.m in Sources */,
 				73E7C58E049A8AF000C919A3 /* FSNodeInfo.m in Sources */,
 				73E7C58F049A8AF000C919A3 /* FSBrowserCell.m in Sources */,
-				929DB9A50BDAE76700D6A80A /* CSRegex.m in Sources */,
+				929DB9A50BDAE76700D6A80A /* CSRegexEpisodeString.m in Sources */,
 				92BFF5720BDB029A00B36214 /* PathDictionary.m in Sources */,
 				92BFF86E0BDFD46800B36214 /* Episode.m in Sources */,
 				92F0D6140BE29D2D0071C3C7 /* Preferences.m in Sources */,
@@ -329,6 +336,7 @@
 				92B788180BE844E70026BA37 /* UKFNSubscribeFileWatcher.m in Sources */,
 				92B7881A0BE844E70026BA37 /* UKKQueue.m in Sources */,
 				92B7881C0BE844E70026BA37 /* UKMainThreadProxy.m in Sources */,
+				92EC40940BF1FF9700E2A975 /* IgnoredEpisodesController.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

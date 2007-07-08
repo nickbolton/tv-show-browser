@@ -129,12 +129,8 @@ static Preferences *sharedPreferences = nil;
                 forKey:TBS_EpisodeExpressions];
     [appDefs setObject:@"http://epguides.com/" 
                 forKey:TBS_EpisodeSite];
-    [appDefs setObject:[NSMutableArray arrayWithObjects:@"[", @"]", @"(", @")", nil] 
-                forKey:TBS_EpisodeFilenameTrimStrings];
-    [appDefs setObject:[NSMutableArray arrayWithObjects:@"_", @"-", @".", nil] 
-                forKey:TBS_EpisodeFilenameWSStrings];
-    [appDefs setObject:[NSMutableArray arrayWithObjects:@"  ", nil] 
-                forKey:TBS_EpisodeFilenameWSAll];
+    [appDefs setObject:[NSMutableArray arrayWithObjects:@"[", @"]", @"(", @")", @" - ", @"_", @"-", @".", nil] 
+                forKey:TBS_EpisodeFilenameWhitespaceExpressions];
     
     [appDefs setObject:@"0.02"
                 forKey:TBS_AllowablePercentNullForDownload];
@@ -154,10 +150,12 @@ static Preferences *sharedPreferences = nil;
     [defaults registerDefaults:appDefs];
 }
 
++ (NSString*)fileName {
+    return [@"~/Library/Preferences/net.deuce.TvShowBrowser-db.plist" stringByExpandingTildeInPath];
+}
+
 - (void)initializePreferences {
-    NSDictionary* dict = [NSDictionary dictionaryWithContentsOfFile:
-        [@"~/Library/Preferences/TvShowBrowser-db.plist" 
-            stringByExpandingTildeInPath]];
+    NSDictionary* dict = [NSDictionary dictionaryWithContentsOfFile:[Preferences fileName]];
     prefs = [[NSMutableDictionary alloc] init];
     [prefs addEntriesFromDictionary:dict];
 }
@@ -173,9 +171,9 @@ static Preferences *sharedPreferences = nil;
 }
 
 - (void)__save {
+    ZNLog(TRACE);
     ZNLogP(DEBUG, @"Saving preferences:\n%@", prefs);
-    [prefs writeToFile:[@"~/Library/Preferences/TvShowBrowser-db.plist"
-        stringByExpandingTildeInPath] atomically: TRUE];
+    [prefs writeToFile:[Preferences fileName] atomically: TRUE];
 }
 
 - (NSString*)__preference:(NSString*)key {
@@ -459,6 +457,10 @@ static Preferences *sharedPreferences = nil;
 
 + (NSArray*)episodeExpressions {
     return [[NSUserDefaults standardUserDefaults] stringArrayForKey:TBS_EpisodeExpressions];
+}
+
++ (NSArray*)whitespaceExpressions {
+    return [[NSUserDefaults standardUserDefaults] stringArrayForKey:TBS_EpisodeFilenameWhitespaceExpressions];
 }
 
 + (NSArray*)releaseGroupExpressions {

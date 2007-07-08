@@ -59,7 +59,7 @@
     self = [super init];
     if (self==nil) return nil;
     
-    parentNode = parent;
+    parentNode = [parent retain];
     relativePath = [path retain];
     
     NSString* tvShowPath = [Preferences tvShowDirectory];
@@ -94,6 +94,7 @@
     BOOL isDirectory = NO;
     BOOL beforeMaxModificationDate = NO;
     BOOL downloadComplete = NO;
+    BOOL isIgnored = NO;
     
     while ((subNodePath=[subNodePaths nextObject])) {
         FSNodeInfo *node = [FSNodeInfo nodeWithParent:self atRelativePath: subNodePath];
@@ -102,8 +103,9 @@
         NSDate *fileModDate = [fileAttributes objectForKey:NSFileModificationDate];
         [fileManager fileExistsAtPath:filePath isDirectory:&isDirectory];
         beforeMaxModificationDate = fileModDate ? [maxModificationDate compare:fileModDate] == NSOrderedDescending : NO;
+        isIgnored = [[Preferences arrayPreference:@"ignoredEpisodes"] containsObject:filePath];
         downloadComplete = [Preferences arrayContains:filePath forKey:@"completedDownloads"];
-        if (isDirectory || beforeMaxModificationDate || downloadComplete) {
+        if (isIgnored || isDirectory || beforeMaxModificationDate || downloadComplete) {
             [subNodes addObject: node];
         }
     }
@@ -194,15 +196,10 @@ int tvShowSorter(id n1, id n2, void *context) {
 
 - (NSString*)absolutePath {
     ZNLog(TRACE);
+
     NSString *result = relativePath;
     if(parentNode!=nil) {
-        NSString *parentAbsPath;
-        if (![parentNode isKindOfClass:[FSNodeInfo class]]) {
-            parentAbsPath = [Preferences mediaDirectory];
-            NSLog(@"weeeeeeeee");
-        } else {
-            parentAbsPath = [parentNode absolutePath];
-        }
+        NSString *parentAbsPath = [parentNode absolutePath];
         if ([parentAbsPath isEqualToString: @"/"]) parentAbsPath = @"";
         result = [NSString stringWithFormat: @"%@/%@", parentAbsPath, relativePath];
     }

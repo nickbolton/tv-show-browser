@@ -22,5 +22,6 @@
 - (void)updateRecentShows:(NSTimer*)theTimer;
 - (IBAction)ignoreRecent:(id)sender;
 - (void)removeObject:(Episode*)episode;
+- (IBAction)refreshRecentShows:(id)sender;
 
 @end

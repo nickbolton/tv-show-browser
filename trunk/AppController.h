@@ -5,7 +5,6 @@
 //
 
 #import <Cocoa/Cocoa.h>
-#import "CSRegex.h"
 #import "FSNodeInfo.h"
 #import "RecentShows.h"
 
@@ -14,6 +13,7 @@
     IBOutlet NSBrowser    *fsBrowser;
     IBOutlet NSArrayController* lastShowArrayController;
     IBOutlet NSArrayController* nextShowArrayController;
+    IBOutlet NSArrayController* recentShowsArrayController;
     IBOutlet NSTableView* recentShowsTableView;
     IBOutlet NSTableView* lastShowTableView;
     IBOutlet NSTableView* nextShowTableView;
@@ -38,11 +38,13 @@
 - (IBAction)browserDoubleClick:(id)sender;
 - (IBAction)recentShowAction:(id)sender;
 - (IBAction)ignoreRecent:(id)sender;
-
+- (IBAction)refreshEpisodeNames:(id)sender;
 
 - (NSMutableArray*)lastShow;
 - (void)setLastShow:(NSMutableArray*)newArray;
 - (NSMutableArray*)nextShow;
 - (void)setNextShow:(NSMutableArray*)newArray;
 - (NSBrowser*)browser;
+- (NSString*)browserPathForEpisode:(Episode*)episode;
+
 @end
