@@ -1,0 +1,1 @@
+This application will keep track of tv shows that are organized into a directory structure.
